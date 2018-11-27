@@ -24,8 +24,8 @@ def input_fn(data, labels, batch_size):
 
 if __name__ == '__main__':
     
-    dir = '/d/data/plasmo/popnet'
-    meta_path = '/d/data/plasmo/meta.csv'
+    dir = '/data/new/javi/plasmo/new/popnet'
+    meta_path = '/data/new/javi/plasmo/new/meta.csv'
     key_path = '/d/data/plasmo/filtered_runfile.txt'
     
     keras = tf.keras
