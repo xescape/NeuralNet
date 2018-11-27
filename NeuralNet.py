@@ -53,7 +53,7 @@ if __name__ == '__main__':
     
     
     l = data.shape[1]
-#     batch_size = data.shape[0] // 10
+    batch_size = data.shape[0] // 10
     
     
     embedding_size = int(l**0.25)
