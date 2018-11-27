@@ -35,11 +35,6 @@ if __name__ == '__main__':
     labels = labels.filter(items=['Sample_Name', target])
     labels = labels.apply(pandas.to_numeric, errors='coerce')
     
-    #TEST CODE DELETE AFTER
-    data = data.iloc[:10]
-    data = data[data.columns[:10]]
-    batch_size = 1
-    
     #specific data processing
     #we're keeping each row to be a feature, and column to be a sample.
     col_labels = data.apply(lambda row: concat_chr_pos(row['Chromosome'], row['Position']), axis=1)
