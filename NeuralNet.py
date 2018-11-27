@@ -26,7 +26,7 @@ if __name__ == '__main__':
     
     dir = '/data/new/javi/plasmo/new/popnet'
     meta_path = '/data/new/javi/plasmo/new/meta.csv'
-    key_path = '/d/data/plasmo/filtered_runfile.txt'
+    key_path = '/data/new/javi/plasmo/new/filtered_runfile.txt'
     
     keras = tf.keras
 
