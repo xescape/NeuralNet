@@ -20,13 +20,13 @@ def input_fn(data, labels, batch_size):
     
     dataset = tf.data.Dataset.from_tensor_slices((dict(data), labels))
     
-    return dataset.shuffle(1000).repeat().batch(batch_size)
+    return dataset.shuffle(1000).repeat(1).batch(batch_size)
 
 if __name__ == '__main__':
     
-    dir = '/data/new/javi/plasmo/new/popnet'
-    meta_path = '/data/new/javi/plasmo/new/meta.csv'
-    key_path = '/data/new/javi/plasmo/new/filtered_runfile.txt'
+    dir = '/d/data/plasmo/popnet'
+    meta_path = '/d/data/plasmo/meta.csv'
+    key_path = '/d/data/plasmo/filtered_runfile.txt'
     
     keras = tf.keras
 
@@ -34,6 +34,11 @@ if __name__ == '__main__':
     target = 'clearance half-life'
     labels = labels.filter(items=['Sample_Name', target])
     labels = labels.apply(pandas.to_numeric, errors='coerce')
+    
+    #TEST CODE DELETE AFTER
+    data = data.iloc[:10]
+    data = data[data.columns[:10]]
+    batch_size = 1
     
     #specific data processing
     #we're keeping each row to be a feature, and column to be a sample.
@@ -44,29 +49,42 @@ if __name__ == '__main__':
     data = data.join(labels)
     data = data[data[target].notnull()]
     
+
 #     msk = data[target].str.contains('not')
 #     data = data[~msk]
     
     labels = data.filter(items=[target])
     data = data.filter(items=data.columns.difference([target]))
     
+    
     l = data.shape[1]
-    batch_size = data.shape[0] // 10
+#     batch_size = data.shape[0] // 10
+    
+    
     embedding_size = int(l**0.25)
     
     feature_columns = [tf.feature_column.embedding_column(categorical_column= tf.feature_column.categorical_column_with_identity(key=x, num_buckets=max),
                                                           dimension = embedding_size) for x in data.columns] 
     
     print('Training!')
+    
+    #fake regressor
     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
-                                    hidden_units=[l, 1.5 * l, 0.5 * l, 0.1 * l],
-                                    dropout = 0.5,
-                                    optimizer = tf.train.ProximalAdagradOptimizer(
-                                        learning_rate = 0.1,
-                                        l1_regularization_strength= 0.001))
+                                hidden_units=[2],
+                                optimizer = tf.train.ProximalAdagradOptimizer(
+                                    learning_rate = 0.1,
+                                    l1_regularization_strength= 0.001))
+    
+    
+#     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
+#                                     hidden_units=[l, 1.5 * l, 0.5 * l, 0.1 * l],
+#                                     dropout = 0.5,
+#                                     optimizer = tf.train.ProximalAdagradOptimizer(
+#                                         learning_rate = 0.1,
+#                                         l1_regularization_strength= 0.001))
     
     est.train(input_fn = lambda : input_fn(data, labels, batch_size), steps = batch_size * 8)
-    eval_result = np.average([est.evaluate(input_fn = lambda : input_fn(data, labels, batch_size * 2)) for x in range(5)])
+    eval_result = np.average([est.evaluate(input_fn = lambda : input_fn(data, labels, batch_size * 2), steps = l) for x in range(5)])
     
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
     
