@@ -27,7 +27,7 @@ if __name__ == '__main__':
     dir = '/data/new/javi/plasmo/new/popnet'
     meta_path = '/data/new/javi/plasmo/new/meta.csv'
     key_path = '/data/new/javi/plasmo/new/filtered_runfile.txt'
-    
+   
     keras = tf.keras
 
     data, labels, max = id.importData(dir, meta_path, key_path)
@@ -35,16 +35,21 @@ if __name__ == '__main__':
     labels = labels.filter(items=['Sample_Name', target])
     labels = labels.apply(pandas.to_numeric, errors='coerce')
     
+       
     #specific data processing
     #we're keeping each row to be a feature, and column to be a sample.
     col_labels = data.apply(lambda row: concat_chr_pos(row['Chromosome'], row['Position']), axis=1)
     data.index = col_labels
     data = data[data.columns[3:]]
     data = data.T
+    
     data = data.join(labels)
+
+#     print(labels[target])
+#     print(data[target])
+    
     data = data[data[target].notnull()]
     
-
 #     msk = data[target].str.contains('not')
 #     data = data[~msk]
     
@@ -54,7 +59,7 @@ if __name__ == '__main__':
     
     l = data.shape[1]
     batch_size = data.shape[0] // 10
-    
+   
     
     embedding_size = int(l**0.25)
     
@@ -65,7 +70,7 @@ if __name__ == '__main__':
     
     #fake regressor
     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
-                                hidden_units=[2],
+                                hidden_units=[l*1.5, l*0.5, l*0.3, l*0.1],
                                 optimizer = tf.train.ProximalAdagradOptimizer(
                                     learning_rate = 0.1,
                                     l1_regularization_strength= 0.001))
@@ -78,10 +83,14 @@ if __name__ == '__main__':
 #                                         learning_rate = 0.1,
 #                                         l1_regularization_strength= 0.001))
     
-    est.train(input_fn = lambda : input_fn(data, labels, batch_size), steps = batch_size * 8)
-    eval_result = np.average([est.evaluate(input_fn = lambda : input_fn(data, labels, batch_size * 2), steps = l) for x in range(5)])
+    est.train(input_fn = lambda : input_fn(data, labels, batch_size), steps = batch_size * 10)
+#     est.train(input_fn = lambda : input_fn(data, labels, batch_size), steps = 1) #let's just try it with some low step
     
-    print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+    print('Eval!')
+    eval_result = est.evaluate(input_fn = lambda : input_fn(data, labels, batch_size * 2), steps = l)
+    
+#     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+    print(eval_result)
     
     
 
