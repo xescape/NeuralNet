@@ -140,8 +140,8 @@ if __name__ == '__main__':
     for x in range(5):
         logger.info('Beginning round {0}'.format(x + 1))
         
-    #     data = data.sample(frac = 1)
-    #     data, labels = data.align(labels, axis= 0)
+        data = data.sample(frac = 1)
+        data, labels = data.align(labels, axis= 0)
         
         train_data = data.iloc[:train_size]
         train_labels = labels.iloc[:train_size]
