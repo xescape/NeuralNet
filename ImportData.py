@@ -84,8 +84,8 @@ def importData(dir, meta_path, key_path):
     popnet, max = importPopNet(dir)
     
     return popnet, meta, max
-    
-        
+
+
 
 if __name__ == '__main__':
     
