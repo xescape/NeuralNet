@@ -5,6 +5,8 @@ Created on Nov 16, 2018
 '''
 
 import tensorflow as tf
+import keras
+import keras.layers as layers
 import sklearn.model_selection as ms
 import sklearn.preprocessing as pp
 import ImportData as id
@@ -14,7 +16,20 @@ import sys
 import os
 import logging
 
-def op_model(features, labels, mode):
+def op_model(features, labels, mode, params):
+    
+    model = keras.Sequential()
+    
+    
+    #input???
+    
+    model.add(layers.Dense(32, input_dim = input_dim))
+    model.add(layers.Activation('relu'))
+    
+    model.add(layers.Dense(10))
+    model.add
+    
+    
     return
 
 def getLogger(name, path):
@@ -120,6 +135,7 @@ if __name__ == '__main__':
     fold = 5
     
     train_size = int(len(data.index) * (fold - 1) / fold)
+    
     embedding_size = int(max**0.25) + 1
     
     feature_columns = [tf.feature_column.embedding_column(categorical_column= tf.feature_column.categorical_column_with_identity(key=x, num_buckets=max),
@@ -130,11 +146,12 @@ if __name__ == '__main__':
     eval_result = []
     
     params = {
-        'hidden_units': [l*2, l, l*1, l*0.5, l*0.1],
-        'dropout': 0.5,
+        'hidden_units': [l*2, l*1, l*0.5, l*0.1],
+        'dropout': 0.3,
+        'activation': tf.nn.leaky_relu,
         'optimizer': tf.train.ProximalAdagradOptimizer(
-                                        learning_rate = 0.1,
-                                        l1_regularization_strength= 0.001)}
+                                        learning_rate = 0.05,
+                                        l1_regularization_strength= 0.000)}
     
     
     for x in range(5):
@@ -145,12 +162,14 @@ if __name__ == '__main__':
         
         train_data = data.iloc[:train_size]
         train_labels = labels.iloc[:train_size]
-       
+
+           
         test_data = data.iloc[train_size:]
         test_labels = labels.iloc[train_size:]
         
         est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
                                     hidden_units= params['hidden_units'],
+                                    activation_fn = params['activation'],
                                     dropout = params['dropout'],
                                     optimizer = params['optimizer'])
          
@@ -166,14 +185,14 @@ if __name__ == '__main__':
         est.train(input_fn = lambda : input_fn(train_data, train_labels, train_size, epo), steps = epo)
     
         
-        logger.info('Eval!')
-        try:
-            res = est.evaluate(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
-            eval_result.append(res)
-        except:
-            raise(Exception('still not working lul'))
-        
-        logger.info('round {0} end with results {1}'.format(x + 1, res))
+#         logger.info('Eval!')
+#         try:
+#             res = est.evaluate(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
+#             eval_result.append(res)
+#         except:
+#             raise(Exception('still not working lul'))
+#         
+#         logger.info('round {0} end with results {1}'.format(x + 1, res))
  
     for i, x in enumerate(eval_result):
         logger.info('round {0}: {1}'.format(i + 1,x))
