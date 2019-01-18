@@ -168,7 +168,7 @@ def main(param_path):
     
     tf.logging.set_verbosity(tf.logging.INFO)
     
-    reps = 1 #how many times do u want to repeat
+    reps = 2 #how many times do u want to repeat
     for i in range(reps):
         trainAndTest(data_path, label_path, params, working_dir, i)
 
@@ -198,8 +198,8 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     #the defaults
     params = {
         'hidden_units': [l*2, l*1, l*0.5, l*0.1],
-        'dropout': 0.3,
-        'activation': tf.nn.leaky_relu,
+        'dropout': 0.05,
+        'activation': 'relu',
         'optimizer': tf.train.ProximalAdagradOptimizer(
                                         learning_rate = 0.03,
                                         l1_regularization_strength= 0.001)}

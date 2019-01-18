@@ -23,11 +23,11 @@ def getParams():
     
     
     return [{var:val,
-             'name':var + str(int(val * 100))} for val in values]
+             'name':'relu' + str(int(val * 100))} for val in values]
 
 def getHeader(name, out_path, err_path):
     
-    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=4:00:00", "#SBATCH --job-name {0}".format(name), \
+    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=1:00:00", "#SBATCH --job-name {0}".format(name), \
          "#SBATCH --output={0}".format(out_path), "#SBATCH --error={0}".format(err_path), ""] #extra line at the end
     
     return "\n".join(h)
