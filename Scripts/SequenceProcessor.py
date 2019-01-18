@@ -22,6 +22,13 @@ def run(ref, prefix, n, out_path):
     n is just a counter
     '''
     
+    def checkStep(text):
+        '''given the text of a log, return an int representing which step we were on'''
+        for x in sorted(range(1, 8), reverse=True):
+            if re.search(str(x), text):
+                return x
+        return 0
+    
     print('worker starting sample ' + prefix)
     
 #     prefix = re.match('^(.+?)[.]fastq$', prefix).group(1)
@@ -41,38 +48,42 @@ def run(ref, prefix, n, out_path):
     bam_rg_path = '{0}/{1}_rg.bam'.format(out_path, prefix)
     vcf_path = '{0}/{1}.g.vcf'.format(out_path, prefix)
     
+    with open(log_path) as f:
+        step = checkStep(f.read())
+    
     logger = getLogger(prefix, log_path)
     
-    t = subprocess.check_output('bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path), shell = True, encoding='utf-8') #runs bwa
-    logger.info(t)
-     
-    t = subprocess.check_output(['samtools', 'view', '-bt', ref + '.fai', '-o', bam_path, sam_path], encoding='utf-8')
-    logger.info(t)
-     
-    t = subprocess.check_output(['gatk', 'AddOrReplaceReadGroups', '-I', bam_path, '-O', bam_rg_path, '-RGID', str(n), '-RGSM', prefix, '-RGLB', 'lib' + str(n), '-RGPL', 'illumina', '-RGPU', 'unit1'], encoding='utf-8')
-    logger.info(t)
-     
-    try:
-        t = subprocess.check_output(['gatk', 'ValidateSamFile', '-I', bam_rg_path], encoding='utf-8')
-        logger.info(t)
-    except subprocess.CalledProcessError:
-        logger.error('Bam didnt pass QC!')
-        return
-     
-    t = subprocess.check_output(['samtools', 'sort', '-o', bam_path, bam_rg_path], encoding='utf-8')
-    logger.info(t)
-     
-    t = subprocess.check_output(['samtools', 'index', bam_path], encoding='utf-8')
-    logger.info(t)
-    
-    try:
-        t = subprocess.check_output(['gatk', '--java-options', '-Xmx8G', 'HaplotypeCaller', '-R', ref, '-I', bam_path, '-O', vcf_path, '-ERC', 'GVCF', '-ploidy', '1'], encoding='utf-8')
-        logger.info(t)
-        logger.info('Success!')    
-    except subprocess.CalledProcessError:
-        logger.error('HaplotypeCaller had a problem')
-        logger.error('Failed!')
-        return    
+    if step < 1:
+        t = subprocess.check_output('bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path), shell = True, encoding='utf-8') #runs bwa
+        logger.info('Step 1 complete')
+    if step < 2: 
+        t = subprocess.check_output(['samtools', 'view', '-bt', ref + '.fai', '-o', bam_path, sam_path], encoding='utf-8')
+        logger.info('Step 2 complete')
+    if step < 3: 
+        t = subprocess.check_output(['gatk', 'AddOrReplaceReadGroups', '-I', bam_path, '-O', bam_rg_path, '-RGID', str(n), '-RGSM', prefix, '-RGLB', 'lib' + str(n), '-RGPL', 'illumina', '-RGPU', 'unit1'], encoding='utf-8')
+        logger.info('Step 3 complete')
+    if step < 4: 
+        try:
+            t = subprocess.check_output(['gatk', 'ValidateSamFile', '-I', bam_rg_path], encoding='utf-8')
+            logger.info('Step 4 complete')
+        except subprocess.CalledProcessError:
+            logger.error('Bam didnt pass QC!')
+            return
+    if step < 5: 
+        t = subprocess.check_output(['samtools', 'sort', '-o', bam_path, bam_rg_path], encoding='utf-8')
+        logger.info('Step 5 complete')
+    if step < 6: 
+        t = subprocess.check_output(['samtools', 'index', bam_path], encoding='utf-8')
+        logger.info('Step 6 complete')
+    if step < 7:
+        try:
+            t = subprocess.check_output(['gatk', '--java-options', '-Xmx8G', 'HaplotypeCaller', '-R', ref, '-I', bam_path, '-O', vcf_path, '-ERC', 'GVCF', '-ploidy', '1'], encoding='utf-8')
+            logger.info('Step 7 complete')
+            logger.info('Success!')    
+        except subprocess.CalledProcessError:
+            logger.error('HaplotypeCaller had a problem')
+            logger.error('Failed!')
+            return    
     
 
 def getLogger(name, path):
