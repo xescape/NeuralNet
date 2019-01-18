@@ -168,7 +168,7 @@ def main(param_path):
     
     tf.logging.set_verbosity(tf.logging.INFO)
     
-    reps = 1 #how many times do u want to repeat
+    reps = 3 #how many times do u want to repeat
     for i in range(reps):
         res = trainAndTest(data_path, label_path, params, working_dir, i)
         res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))
@@ -200,12 +200,14 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
         'hidden_units': [l*2, l*1, l*0.5, l*0.1],
         'dropout': 0.25,
         'activation': 'relu',
-        'optimizer': tf.train.AdamOptimizer(learning_rate = 0.03)}
+        'optimizer': tf.train.AdamOptimizer(learning_rate = 0.001)}
     
     #changes the ones we want to change from defaults
     for key in mod_params:
         if key == 'learning_rate':
             params['optimizer'] = tf.train.AdamOptimizer(learning_rate=mod_params['learning_rate'])
+        if key == 'hidden_units':
+            params['hidden_units'] = mod_params['hidden_units'](l)
         else:
             params[key] = mod_params[key]
     

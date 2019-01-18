@@ -17,17 +17,25 @@ def getParams():
     '''returns a dict, which contains parameters that we're changing. also includes a name
         edit this one in the future!'''
        
-    var = 'learning_rate'
-    values = [0.001, 0.005, 0.01, 0.03, 0.05, 0.1]
-    
-    
+    var = 'hidden_units'
+    def f1(l):
+        return [l*2, l*1, l*0.5, l*0.1]
+    def f2(l):
+        return [l*4, l*2, l*1, l*0.2]
+    def f3(l):
+        return [l*2, l*1, l*0.5, l*0.1, l*0.05]
+    def f4(l):
+        return [l*4, l*2, l*1, l*0.5, l*0.1]
+    def f5(l):
+        return [l*2, l*1, l*0.1]
+    values = [f1, f2, f3, f4, f5]
     
     return [{var:val,
-             'name':'learn' + str(int(val * 100000))} for val in values]
+             'name':'layers' + str(int(i))} for i, val in enumerate(values)]
 
 def getHeader(name, out_path, err_path):
     
-    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=1:00:00", "#SBATCH --job-name {0}".format(name), \
+    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=2:00:00", "#SBATCH --job-name {0}".format(name), \
          "#SBATCH --output={0}".format(out_path), "#SBATCH --error={0}".format(err_path), ""] #extra line at the end
     
     return "\n".join(h)
