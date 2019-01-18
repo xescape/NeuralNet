@@ -18,7 +18,7 @@ def getParams():
         edit this one in the future!'''
        
     var = 'learning_rate'
-    values = [0.001, 0.005]
+    values = [0.001, 0.005, 0.01, 0.03, 0.05, 0.1]
     
     
     

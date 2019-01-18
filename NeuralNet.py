@@ -184,7 +184,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, max = getData(data_path, label_path)
     
         #split to train and test test after shuffling
-    epo = 100
+    epo = 10000
     l = data.shape[1]
     fold = 5
     
