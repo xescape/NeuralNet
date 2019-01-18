@@ -18,12 +18,12 @@ def getParams():
         edit this one in the future!'''
        
     var = 'learning_rate'
-    values = [0.001, 0.005, 0.01, 0.03, 0.05, 0.1]
+    values = [0.001, 0.005]
     
     
     
     return [{var:val,
-             'name':'learn' + str(int(val * 100))} for val in values]
+             'name':'learn' + str(int(val * 100000))} for val in values]
 
 def getHeader(name, out_path, err_path):
     
