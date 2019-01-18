@@ -17,8 +17,8 @@ def getParams():
     '''returns a dict, which contains parameters that we're changing. also includes a name
         edit this one in the future!'''
        
-    var = 'dropout'
-    values = [0.0, 0.1]
+    var = 'relu'
+    values = [0.1, 0.15, 0.2, 0.25, 0.3]
     
     
     
