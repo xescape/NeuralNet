@@ -23,7 +23,7 @@ def getParams():
     
     
     return [{var:val,
-             'name':'relu' + str(int(val * 100))} for val in values]
+             'name':'learn' + str(int(val * 100))} for val in values]
 
 def getHeader(name, out_path, err_path):
     
