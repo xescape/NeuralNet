@@ -17,8 +17,8 @@ def getParams():
     '''returns a dict, which contains parameters that we're changing. also includes a name
         edit this one in the future!'''
        
-    var = 'relu'
-    values = [0.1, 0.15, 0.2, 0.25, 0.3]
+    var = 'learning_rate'
+    values = [0.001, 0.005, 0.01, 0.03, 0.05, 0.1]
     
     
     

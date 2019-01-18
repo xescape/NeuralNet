@@ -168,10 +168,10 @@ def main(param_path):
     
     tf.logging.set_verbosity(tf.logging.INFO)
     
-    reps = 2 #how many times do u want to repeat
+    reps = 1 #how many times do u want to repeat
     for i in range(reps):
-        trainAndTest(data_path, label_path, params, working_dir, i)
-
+        res = trainAndTest(data_path, label_path, params, working_dir, i)
+        res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))
         
 
 def trainAndTest(data_path, label_path, mod_params, working_dir, i):
@@ -184,7 +184,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, max = getData(data_path, label_path)
     
         #split to train and test test after shuffling
-    epo = 10000
+    epo = 100
     l = data.shape[1]
     fold = 5
     
@@ -198,15 +198,16 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     #the defaults
     params = {
         'hidden_units': [l*2, l*1, l*0.5, l*0.1],
-        'dropout': 0.05,
+        'dropout': 0.25,
         'activation': 'relu',
-        'optimizer': tf.train.ProximalAdagradOptimizer(
-                                        learning_rate = 0.03,
-                                        l1_regularization_strength= 0.001)}
+        'optimizer': tf.train.AdamOptimizer(learning_rate = 0.03)}
     
     #changes the ones we want to change from defaults
     for key in mod_params:
-        params[key] = mod_params[key]
+        if key == 'learning_rate':
+            params['optimizer'] = tf.train.AdamOptimizer(learning_rate=mod_params['learning_rate'])
+        else:
+            params[key] = mod_params[key]
     
     data = data.sample(frac = 1)
     data, labels = data.align(labels, axis= 0)
@@ -232,7 +233,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
 #                                         l1_regularization_strength= 0.001))
     
     
-    logger.info('train..')
+    logger.info('Train..')
     est.train(input_fn = lambda : input_fn(train_data, train_labels, train_size, epo), steps = epo)
 
     
@@ -242,10 +243,19 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     except:
         raise(Exception('still not working lul'))
          
-        
-
+    logger.info('Predict!')    
+    
+    pred = est.predict(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
+    
+    pred_vals = [x['predictions'][0] for x in pred]
+    test_labels['pred'] = np.array(pred_vals)
+    test_labels['loss'] = test_labels.apply(lambda x: abs(x[0] - x[1]), axis=1)
+    
+    
     logger.info('round {0}: {1}\nparams used: {2}'.format(i,res,str(params)))
-
+    
+    
+    return test_labels
     
 if __name__ == '__main__':
     start = time.time()

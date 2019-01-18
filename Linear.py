@@ -4,7 +4,7 @@ Created on Nov 16, 2018
 @author: Javi
 '''
 
-import tensorflow as tf
+# import tensorflow as tf
 # import keras
 # import keras.layers as layers
 import sklearn.model_selection as ms
@@ -14,12 +14,11 @@ import numpy as np
 import pandas
 import sys
 import os
-import logging
 import pathlib
-from datetime import datetime
 import time
 import re
-
+import math
+from datetime import datetime
 
 from sklearn import linear_model
 # def op_model(features, labels, mode, params):
@@ -37,24 +36,24 @@ from sklearn import linear_model
 #     
 #     
 #     return
-
-def loadConfig(config_path):
-    '''simple load config. only get lines that are like ^X=Y\n'''
-    
-    line_pattern = '^[^#]+?[=].+?'
-    
-    res = {}
-    with open(config_path, 'r') as f:
-        for line in f:
-            line = line.rstrip('\n')
-            if re.match(line_pattern, line):
-                split = line.split('=')
-                try:
-                    res[split[0].strip()] = float(split[1].strip())
-                except:
-                    res[split[0].strip()] = split[1].strip()
-
-    return res
+# 
+# def loadConfig(config_path):
+#     '''simple load config. only get lines that are like ^X=Y\n'''
+#     
+#     line_pattern = '^[^#]+?[=].+?'
+#     
+#     res = {}
+#     with open(config_path, 'r') as f:
+#         for line in f:
+#             line = line.rstrip('\n')
+#             if re.match(line_pattern, line):
+#                 split = line.split('=')
+#                 try:
+#                     res[split[0].strip()] = float(split[1].strip())
+#                 except:
+#                     res[split[0].strip()] = split[1].strip()
+# 
+#     return res
     
     
 # def getLogger(name, path):
@@ -124,12 +123,25 @@ def getData(data_path, label_path):
 def concat_chr_pos(chr, pos):
     return str(chr)[1:] + str(pos)
 
-def input_fn(data, labels, batch_size, epo):
-    
-    dataset = tf.data.Dataset.from_tensor_slices((dict(data), labels))
-    
-    return dataset.repeat(epo).batch(batch_size)
 
+
+def abs_error(model, test_set, test_labels):
+    '''tries to calculate the absolute error and prediction mean'''
+    
+    def predict(x):
+        return model.predict(x.reshape(1, -1))[0]
+    
+    average_label = np.mean(test_labels[test_labels.columns[0]])
+    
+    test_labels['pred'] = model.predict(test_set)
+    
+    test_labels['loss'] = test_labels.apply(lambda x: abs(x[0] - x[1]), axis=1)
+    
+    average_pred = np.mean(test_labels['pred'])
+    average_loss = np.mean(test_labels['loss'])
+    
+    print(test_labels)
+    return average_label, average_pred, average_loss, test_labels
 def main():
     '''
     call this to run. working_dir should be a Path from pathlib.
@@ -150,7 +162,9 @@ def main():
     
 #     keras = tf.keras
    
-    
+    if not working_dir.is_dir():
+        os.mkdir(working_dir)
+        
     if not old_logs.is_dir():
         os.mkdir(old_logs)
     
@@ -165,11 +179,12 @@ def main():
         newData(popnet_dir, meta_path, key_path, data_path, label_path)
     
     
-    tf.logging.set_verbosity(tf.logging.INFO)
+#     tf.logging.set_verbosity(tf.logging.INFO)
     
     reps = 2 #how many times do u want to repeat
     for i in range(reps):
-        trainAndTest(data_path, label_path, i)
+        res = trainAndTest(data_path, label_path, i)
+        res.to_csv(working_dir / 'linear_result.csv')
 
         
 
@@ -177,13 +192,12 @@ def trainAndTest(data_path, label_path, i):
 
     data, labels, max = getData(data_path, label_path)
 
-    l = data.shape[1]
     fold = 5
-    
     train_size = int(len(data.index) * (fold - 1) / fold)
 
     data = data.sample(frac = 1)
     data, labels = data.align(labels, axis= 0)
+    data = pandas.get_dummies(data, columns=data.columns)
     
     train_data = data.iloc[:train_size]
     train_labels = labels.iloc[:train_size]
@@ -192,24 +206,27 @@ def trainAndTest(data_path, label_path, i):
     test_labels = labels.iloc[train_size:]
     
     
-    oh_train = pandas.get_dummies(train_data)
-    oh_test = pandas.get_dummies(test_data)
-    
     reg = linear_model.Lasso(alpha=0.1)
-    reg.fit(oh_train, train_labels)
+    reg.fit(train_data, train_labels)
+  
+    train_score = reg.score(train_data, train_labels)
+    test_score = reg.score(test_data, test_labels)
+
+    print('train score = {0} test score = {1}'.format(str(train_score), str(test_score)))
     
-    train_score = reg.score(oh_train, train_labels)
-    test_score = reg.score(oh_test, test_labels)
+    l, p, o, table = abs_error(reg, test_data, test_labels)
     
-    print('train score is {0}'.format(str(train_score)))
-    print('test score is {0}'.format(str(test_score)))
+    print('results:')
+    print('label average ' + str(l))
+    print('pred average ' + str(p))
+    print('loss average ' + str(o))
+    
+    return table
     
     
 if __name__ == '__main__':
     start = time.time()
-#     working_dir = pathlib.Path(sys.argv[1])
-    param_path = pathlib.Path(sys.argv[1])
-    main(param_path)
+    main()
     end = time.time()
     print('Linear.py completed in {0} seconds'.format(str(end - start)))    
     
