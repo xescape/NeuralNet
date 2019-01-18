@@ -25,9 +25,10 @@ def getParams():
     return [{var:val,
              'name':var + str(int(val * 100))} for val in values]
 
-def getHeader(name):
+def getHeader(name, out_path, err_path):
     
-    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=4:00:00", "#SBATCH --job-name {0}".format(name), ""] #extra line at the end
+    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=4:00:00", "#SBATCH --job-name {0}".format(name), \
+         "#SBATCH --output={0}".format(out_path), "#SBATCH --error={0}".format(err_path), ""] #extra line at the end
     
     return "\n".join(h)
 
@@ -52,6 +53,8 @@ def makeScriptAndRun(script_path, root, p, mode):
     
     folder = root / p['name']
     config_path = folder / 'config_{0}.txt'.format(p['name'])
+    out_path = folder / '{0}_out.txt'.format(p['name'])
+    err_path = folder / '{0}_err.txt'.format(p['name'])
     sh_path = folder / 'run_{0}.sh'.format(p['name'])
     
     if not folder.is_dir():
@@ -71,13 +74,13 @@ def makeScriptAndRun(script_path, root, p, mode):
     #creates and submits the job
     if mode == 'local':
         command = "python3 {0} {1}".format(script_path, config_path)
-        sh_str = [getHeader(p['name']), command]
+        sh_str = [getHeader(p['name'], out_path, err_path), command]
         with open(sh_path, 'w') as sh:
             sh.write('\n'.join(sh_str))
         subprocess.call(['bash', sh_path])
     elif mode == 'scinet':
         command = "python {0} {1}".format(script_path, config_path)
-        sh_str = [getHeader(p['name']), getMods(), command]
+        sh_str = [getHeader(p['name'], out_path, err_path), getMods(), command]
         with open(sh_path, 'w') as sh:
             sh.write('\n'.join(sh_str))       
         subprocess.call(['sbatch', sh_path])
