@@ -184,7 +184,7 @@ def main():
     reps = 2 #how many times do u want to repeat
     for i in range(reps):
         res = trainAndTest(data_path, label_path, i)
-        res.to_csv(working_dir / 'linear_result.csv')
+        res.to_csv(working_dir / 'linear_result2.csv')
 
         
 
@@ -196,14 +196,14 @@ def trainAndTest(data_path, label_path, i):
     train_size = int(len(data.index) * (fold - 1) / fold)
 
     data = data.sample(frac = 1)
-    data, labels = data.align(labels, axis= 0)
+#     labels, data = labels.align(data, axis= 0)
     data = pandas.get_dummies(data, columns=data.columns)
     
     train_data = data.iloc[:train_size]
-    train_labels = labels.iloc[:train_size]
+    train_labels = labels.loc[train_data.index]
 
     test_data = data.iloc[train_size:]
-    test_labels = labels.iloc[train_size:]
+    test_labels = labels.loc[test_data.index]
     
     
     reg = linear_model.Lasso(alpha=0.1)

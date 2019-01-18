@@ -169,10 +169,10 @@ def main(param_path):
     tf.logging.set_verbosity(tf.logging.INFO)
     
     reps = 3 #how many times do u want to repeat
+    res_list = []
     for i in range(reps):
         res = trainAndTest(data_path, label_path, params, working_dir, i)
-        res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))
-        
+        res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))   
 
 def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
@@ -215,13 +215,13 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
             params[key] = mod_params[key]
     
     data = data.sample(frac = 1)
-    data, labels = data.align(labels, axis= 0)
+#     data, labels = data.align(labels, axis= 0)
     
     train_data = data.iloc[:train_size]
-    train_labels = labels.iloc[:train_size]
+    train_labels = labels.loc[train_data.index]
 
     test_data = data.iloc[train_size:]
-    test_labels = labels.iloc[train_size:]
+    test_labels = labels.loc[test_data.index]
     
     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
                                 hidden_units= params['hidden_units'],
