@@ -176,6 +176,9 @@ def main(param_path):
 
 def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
+    def toList(list_str, l):
+        return [l * x for x in eval(list_str)]
+    
     i = i + 1
     logger = logging.getLogger('main')
     logger.info('Beginning round {0}'.format(i))
@@ -207,7 +210,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
         if key == 'learning_rate':
             params['optimizer'] = tf.train.AdamOptimizer(learning_rate=mod_params['learning_rate'])
         if key == 'hidden_units':
-            params['hidden_units'] = mod_params['hidden_units'](l)
+            params['hidden_units'] = toList(mod_params['hidden_units'], l)
         else:
             params[key] = mod_params[key]
     
