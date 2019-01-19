@@ -41,7 +41,7 @@ def linear_error(model, test_set, test_labels):
     
     def predict(x):
         return model.predict(x.reshape(1, -1))[0]
-    
+       
     average_label = np.mean(test_labels[test_labels.columns[0]])
     
     test_labels['pred'] = model.predict(test_set)
@@ -150,6 +150,8 @@ def main(param_path):
     '''
     call this to run. working_dir should be a Path from pathlib.
     '''
+    tf.enable_eager_execution()
+    
     params = loadConfig(param_path)
     input_path = pathlib.Path(params['input_path'])
     working_dir = pathlib.Path(params['directory'])
@@ -270,15 +272,6 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
          
     logger.info('Predict!')    
     
-    pred = est.predict(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
-    
-    pred_vals = [x['predictions'][0] for x in pred]
-    test_labels['pred'] = np.array(pred_vals)
-    test_labels['loss'] = test_labels.apply(lambda x: abs(x[0] - x[1]), axis=1)
-    
-    
-    logger.info('round {0}: {1}\nparams used: {2}'.format(i,res,str(params)))
-    
     #Compare against the linear model
     reg = linear_model.Lasso(alpha=0.1)
     reg.fit(train_data, train_labels)
@@ -288,12 +281,19 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
 
     print('train score = {0} test score = {1}'.format(str(train_score), str(test_score)))
     
-    l, p, o, table = linear_error(reg, test_data, test_labels)
+    l, p, o, table = linear_error(reg, test_data, test_labels.copy(deep=True))
     
-    print('results:')
-    print('label average ' + str(l))
-    print('pred average ' + str(p))
-    print('loss average ' + str(o))
+    pred = est.predict(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
+    
+    pred_vals = [x['predictions'][0] for x in pred]
+    test_labels['pred'] = np.array(pred_vals)
+    test_labels['loss'] = test_labels.apply(lambda x: abs(x[0] - x[1]), axis=1)
+    
+    
+    logger.info('round {0}: {1}\nparams used: {2}'.format(i,res,str(params)))
+    
+
+
     
     return test_labels, table
     
