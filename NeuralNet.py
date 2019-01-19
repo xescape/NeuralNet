@@ -9,6 +9,7 @@ import tensorflow as tf
 # import keras.layers as layers
 import sklearn.model_selection as ms
 import sklearn.preprocessing as pp
+from sklearn import linear_model
 import ImportData as id
 import numpy as np
 import pandas
@@ -34,6 +35,24 @@ import re
 #     
 #     
 #     return
+
+def linear_error(model, test_set, test_labels):
+    '''tries to calculate the absolute error and prediction mean'''
+    
+    def predict(x):
+        return model.predict(x.reshape(1, -1))[0]
+    
+    average_label = np.mean(test_labels[test_labels.columns[0]])
+    
+    test_labels['pred'] = model.predict(test_set)
+    
+    test_labels['loss'] = test_labels.apply(lambda x: abs(x[0] - x[1]), axis=1)
+    
+    average_pred = np.mean(test_labels['pred'])
+    average_loss = np.mean(test_labels['loss'])
+    
+    print(test_labels)
+    return average_label, average_pred, average_loss, test_labels
 
 def loadConfig(config_path):
     '''simple load config. only get lines that are like ^X=Y\n'''
@@ -169,10 +188,10 @@ def main(param_path):
     tf.logging.set_verbosity(tf.logging.INFO)
     
     reps = 3 #how many times do u want to repeat
-    res_list = []
     for i in range(reps):
-        res = trainAndTest(data_path, label_path, params, working_dir, i)
-        res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))   
+        res, linear_res = trainAndTest(data_path, label_path, params, working_dir, i)
+        res.to_csv(working_dir / 'results_{0}.csv'.format(str(i)))  
+        linear_res.to_csv(working_dir / 'results_linear_{0}.csv'.format(str(i))) 
 
 def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
@@ -187,7 +206,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, max = getData(data_path, label_path)
     
         #split to train and test test after shuffling
-    epo = 10000
+    epo = 100
     l = data.shape[1]
     fold = 5
     
@@ -198,9 +217,10 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     feature_columns = [tf.feature_column.embedding_column(categorical_column= tf.feature_column.categorical_column_with_identity(key=x, num_buckets=max),
                                                           dimension = embedding_size) for x in data.columns]
     
+    #[4, 2, 1, 0.5, 0.1, 0.05]
     #the defaults
     params = {
-        'hidden_units': [l*2, l*1, l*0.5, l*0.1],
+        'hidden_units': [l*4, l*2, l*1, l*0.5, l*0.1, l*0.05],
         'dropout': 0.25,
         'activation': 'relu',
         'optimizer': tf.train.AdamOptimizer(learning_rate = 0.001)}
@@ -259,8 +279,23 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
     logger.info('round {0}: {1}\nparams used: {2}'.format(i,res,str(params)))
     
+    #Compare against the linear model
+    reg = linear_model.Lasso(alpha=0.1)
+    reg.fit(train_data, train_labels)
+  
+    train_score = reg.score(train_data, train_labels)
+    test_score = reg.score(test_data, test_labels)
+
+    print('train score = {0} test score = {1}'.format(str(train_score), str(test_score)))
     
-    return test_labels
+    l, p, o, table = linear_error(reg, test_data, test_labels)
+    
+    print('results:')
+    print('label average ' + str(l))
+    print('pred average ' + str(p))
+    print('loss average ' + str(o))
+    
+    return test_labels, table
     
 if __name__ == '__main__':
     start = time.time()
