@@ -181,11 +181,11 @@ def main(param_path):
     
     
     if not os.path.isdir(data_dir):
-        logger.info('parsing data..')
+#         logger.info('parsing data..')
         os.mkdir(data_dir)
         newData(popnet_dir, meta_path, key_path, data_path, label_path)
     
-    logger.info('using parsed data, starting..')
+#     logger.info('using parsed data, starting..')
     
     tf.logging.set_verbosity(tf.logging.INFO)
     
@@ -203,7 +203,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     #set up
     i = i + 1
     logger = logging.getLogger('main')
-    logger.info('Beginning round {0}'.format(i))
+#     logger.info('Beginning round {0}'.format(i))
     model_dir = working_dir / 'model_{0}'.format(i)
     try:
         os.mkdir(model_dir)
@@ -214,7 +214,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, n_buckets = getData(data_path, label_path)
     
     #set up run parameters
-    epo = 10000
+    epo = 3000
     test_epo = 100
     l = data.shape[1]
     fold = 5
@@ -222,8 +222,9 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     train_size = int(len(data.index) * (fold - 1) / fold)
     test_size = int(len(data.index) - train_size)
     
-    batch_size = int(max(1, train_size/100))
-    test_batch_size = int(max(1, test_size/100))
+    #we're just going max batch size
+    batch_size = int(max(1, train_size/1))
+    test_batch_size = int(max(1, test_size/1))
     
     embedding_size = int(n_buckets**0.25) + 1
     
@@ -275,17 +276,17 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
 #                                         l1_regularization_strength= 0.001))
     
     
-    logger.info('Train..')
+#     logger.info('Train..')
     est.train(input_fn = lambda : input_fn(train_data, train_labels, batch_size, epo))
 
     
-    logger.info('Eval!')
+#     logger.info('Eval!')
     try:
         res = est.evaluate(input_fn = lambda : input_fn(test_data, test_labels, test_batch_size, test_epo))
     except:
         raise(Exception('still not working lul'))
          
-    logger.info('Predict!')    
+#     logger.info('Predict!')    
     
     #Compare against the linear model
     reg = linear_model.Lasso(alpha=0.1)
