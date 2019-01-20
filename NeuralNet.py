@@ -144,7 +144,7 @@ def input_fn(data, labels, batch_size, epo):
     
     dataset = tf.data.Dataset.from_tensor_slices((dict(data), labels))
     
-    return dataset.repeat(epo).batch(batch_size)
+    return dataset.shuffle(buffer_size=10000).batch(batch_size, drop_remainder=True).repeat(epo)
 
 def main(param_path):
     '''
@@ -200,29 +200,40 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     def toList(list_str, l):
         return [l * x for x in eval(list_str)]
     
+    #set up
     i = i + 1
     logger = logging.getLogger('main')
     logger.info('Beginning round {0}'.format(i))
+    model_dir = working_dir / 'model_{0}'.format(i)
+    try:
+        os.mkdir(model_dir)
+    except:
+        pass
     
+    #get data from pickle
+    data, labels, n_buckets = getData(data_path, label_path)
     
-    data, labels, max = getData(data_path, label_path)
-    
-        #split to train and test test after shuffling
+    #set up run parameters
     epo = 10000
+    test_epo = 100
     l = data.shape[1]
     fold = 5
     
     train_size = int(len(data.index) * (fold - 1) / fold)
+    test_size = int(len(data.index) - train_size)
     
-    embedding_size = int(max**0.25) + 1
+    batch_size = int(max(1, train_size/100))
+    test_batch_size = int(max(1, test_size/100))
     
-    feature_columns = [tf.feature_column.embedding_column(categorical_column= tf.feature_column.categorical_column_with_identity(key=x, num_buckets=max),
+    embedding_size = int(n_buckets**0.25) + 1
+    
+    feature_columns = [tf.feature_column.embedding_column(categorical_column= tf.feature_column.categorical_column_with_identity(key=x, num_buckets=n_buckets),
                                                           dimension = embedding_size) for x in data.columns]
     
     #[4, 2, 1, 0.5, 0.1, 0.05]
     #the defaults
     params = {
-        'hidden_units': [l*4, l*2, l*1, l*0.5, l*0.1, l*0.05],
+        'hidden_units': [l*2, l*0.5, l*0.1],
         'dropout': 0.25,
         'activation': 'relu',
         'optimizer': tf.train.AdamOptimizer(learning_rate = 0.001)}
@@ -236,6 +247,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
         else:
             params[key] = mod_params[key]
     
+    #split to train and test test after shuffling
     data = data.sample(frac = 1)
 #     data, labels = data.align(labels, axis= 0)
     
@@ -245,12 +257,15 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     test_data = data.iloc[train_size:]
     test_labels = labels.loc[test_data.index]
     
+    
+    
+    
     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
                                 hidden_units= params['hidden_units'],
                                 activation_fn = params['activation'],
                                 dropout = params['dropout'],
                                 optimizer = params['optimizer'],
-                                model_dir=working_dir)
+                                model_dir=model_dir)
      
 #     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
 #                             hidden_units= [l*2, l, l*1, l*0.5, l*0.1],
@@ -261,12 +276,12 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
     
     logger.info('Train..')
-    est.train(input_fn = lambda : input_fn(train_data, train_labels, train_size, epo), steps = epo)
+    est.train(input_fn = lambda : input_fn(train_data, train_labels, batch_size, epo))
 
     
     logger.info('Eval!')
     try:
-        res = est.evaluate(input_fn = lambda : input_fn(test_data, test_labels, 1, 1))
+        res = est.evaluate(input_fn = lambda : input_fn(test_data, test_labels, test_batch_size, test_epo))
     except:
         raise(Exception('still not working lul'))
          

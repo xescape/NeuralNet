@@ -19,16 +19,17 @@ def getParams():
        
     var = 'hidden_units'
     
-    a = [4, 1, 0.5, 0.1, 0.05]
-    b = [2, 1, 0.5, 0.1, 0.05, 0.025]
-    c = [2, 1, 0.5, 0.1, 0.05, 0.01]
-    d = [8, 4, 2, 1, 0.5, 0.1, 0.05]
-    e = [4, 2, 1, 0.5, 0.1, 0.05, 0.01]
+    a = [2, 1, 0.1]
+    b = [2, 1, 0.1, 0.025]
+    c = [2, 1, 0.05]
+    d = [4, 1, 0.1]
+    e = [1.5, 0.5, 0.1]
+    f = [2, 1, 0.5, 0.1]
     
-    values = [a,b,d,c,e]
+    values = [a,b,d,c,e,f]
     
     return [{var:str(val),
-             'name':'layers1' + str(int(i))} for i, val in enumerate(values)]
+             'name':'layers' + str(int(i))} for i, val in enumerate(values)]
 
 def getHeader(name, out_path, err_path):
     
