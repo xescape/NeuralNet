@@ -20,20 +20,18 @@ def getParams():
     var = 'hidden_units'
     
     a = [2, 1, 0.5, 0.1]
-    b = [2, 1, 0.1, 0.025]
-    c = [2, 1, 0.05]
-    d = [4, 2, 1, 0.5]
-    e = [4, 1, 0.5, 0.1]
-    f = [2, 1, 0.5, 0.1]
+    b = [2, 1, 0.5, 0.025]
+    c = [2, 0.5, 0.1, 0.025]
+    d = [1, 0.5, 0.1]
     
-    values = [a,b,d,c,e,f]
+    values = [a,b,c,d]
     
     return [{var:str(val),
              'name':'layers' + str(int(i))} for i, val in enumerate(values)]
 
 def getHeader(name, out_path, err_path):
     
-    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=2:00:00", "#SBATCH --job-name {0}".format(name), \
+    h = ["#!/bin/bash", "#SBATCH --nodes=1", "#SBATCH --ntasks-per-node=40", "#SBATCH --time=3:00:00", "#SBATCH --job-name {0}".format(name), \
          "#SBATCH --output={0}".format(out_path), "#SBATCH --error={0}".format(err_path), ""] #extra line at the end
     
     return "\n".join(h)
