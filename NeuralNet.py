@@ -200,6 +200,12 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     def toList(list_str, l):
         return [l * x for x in eval(list_str)]
     
+    def exp_decay(init_value, epo):
+        return tf.train.exponential_decay(
+            learning_rate=init_value,
+            global_step=epo,
+            decay_steps=1000,
+            decay_rate=0.96)
     #set up
     i = i + 1
     logger = logging.getLogger('main')
@@ -214,7 +220,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, n_buckets = getData(data_path, label_path)
     
     #set up run parameters
-    epo = 20000
+    epo = 10000
     test_epo = 100
     l = data.shape[1]
     fold = 5
@@ -233,16 +239,17 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
     #[4, 2, 1, 0.5, 0.1, 0.05]
     #the defaults
+    
     params = {
         'hidden_units': [l*2, l*0.5, l*0.1],
         'dropout': 0.25,
         'activation': 'relu',
-        'optimizer': tf.train.AdamOptimizer(learning_rate = 0.001)}
+        'optimizer': tf.train.AdamOptimizer(learning_rate = exp_decay(0.001, epo))}
     
     #changes the ones we want to change from defaults
     for key in mod_params:
         if key == 'learning_rate':
-            params['optimizer'] = tf.train.AdamOptimizer(learning_rate=mod_params['learning_rate'])
+            params['optimizer'] = tf.train.AdamOptimizer(learning_rate=exp_decay(mod_params['learning_rate'], epo))
         if key == 'hidden_units':
             params['hidden_units'] = toList(mod_params['hidden_units'], l)
         else:
