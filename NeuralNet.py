@@ -214,7 +214,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, n_buckets = getData(data_path, label_path)
     
     #set up run parameters
-    epo = 3000
+    epo = 20000
     test_epo = 100
     l = data.shape[1]
     fold = 5
