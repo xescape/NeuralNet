@@ -315,9 +315,6 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     
     logger.info('round {0}: {1}\nparams used: {2}'.format(i,res,str(params)))
     
-
-
-    
     return test_labels, table
     
 if __name__ == '__main__':
