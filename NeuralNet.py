@@ -112,7 +112,7 @@ def newData(popnet_dir, meta_path, key_path, data_path, label_path):
     data = data.T
     
     data = data.join(labels)
-    
+
     data = data[data[target].notnull()]
     data = data.sample(frac = 1) #shuffles the rows.
 
@@ -150,7 +150,7 @@ def main(param_path):
     '''
     call this to run. working_dir should be a Path from pathlib.
     '''
-    tf.enable_eager_execution()
+    # tf.enable_eager_execution()
     
     params = loadConfig(param_path)
     input_path = pathlib.Path(params['input_path'])
@@ -160,7 +160,7 @@ def main(param_path):
     
     data_dir = input_path / 'nn_data'
     popnet_dir = input_path / 'popnet_small'
-    meta_path = input_path / 'meta.csv'
+    meta_path = input_path / 'sim2_meta.csv'
     key_path = input_path / 'filtered_runfile.txt'
     log_path = working_dir / 'nn_log.txt'
     old_logs = working_dir / 'old_logs'
@@ -220,7 +220,7 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     data, labels, n_buckets = getData(data_path, label_path)
     
     #set up run parameters
-    epo = 10000
+    epo = 5000
     test_epo = 100
     l = data.shape[1]
     fold = 5
@@ -241,10 +241,10 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
     #the defaults
     
     params = {
-        'hidden_units': [l*2, l*0.5, l*0.1],
+        'hidden_units': [32, 32, 32],
         'dropout': 0.25,
         'activation': 'relu',
-        'optimizer': tf.train.AdamOptimizer(learning_rate = exp_decay(0.001, epo))}
+        'optimizer': tf.train.AdamOptimizer(learning_rate = 0.003)}
     
     #changes the ones we want to change from defaults
     for key in mod_params:
@@ -264,9 +264,6 @@ def trainAndTest(data_path, label_path, mod_params, working_dir, i):
 
     test_data = data.iloc[train_size:]
     test_labels = labels.loc[test_data.index]
-    
-    
-    
     
     est = tf.estimator.DNNRegressor(feature_columns = feature_columns,
                                 hidden_units= params['hidden_units'],
