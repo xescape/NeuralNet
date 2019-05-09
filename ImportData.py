@@ -75,9 +75,18 @@ def importData(dir, meta_path, key_path):
     with open(key_path) as input:
         key = pandas.read_csv(input, sep='\t', header=0, index_col=13).filter(items=['Run'])
 
+    print(key)
+    print(meta)
     
+    print('Im trying to merge on a key that doesnt exist')
     
     meta = meta.merge(key, on='Sample_Name')
+    
+    print('but it was fine anyway')
+
+    
+    print(key['Sample_Name'])
+    print(meta['Sample_Name'])
     
     meta = meta.set_index('Run')
      
