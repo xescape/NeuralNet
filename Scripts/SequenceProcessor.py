@@ -131,9 +131,12 @@ def checkRef(log_path):
     checks to see if the reference is prepped
     '''
     success_msg = 'ref OK'
-    with open(log_path) as input:
-        d = input.read()
-    
+    try:
+        with open(log_path) as input:
+            d = input.read()
+    except:
+        return False
+        
     if success_msg in d:
         return True
     else:
