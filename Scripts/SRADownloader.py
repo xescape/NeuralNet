@@ -7,6 +7,7 @@ import os
 import re 
 import subprocess
 import multiprocessing as mp
+from pathlib import Path
 
 def load(file_path):
     
@@ -14,7 +15,7 @@ def load(file_path):
         data = input.read()
         
     
-    data = re.split('\n', data.strip())
+    data = re.split('\n', data.strip('\n'))
     
     return data
 
@@ -25,7 +26,7 @@ def run(exe_path, srr, out_path):
 
 if __name__ == '__main__':
     
-    exe_path = r'D:\Documents\sratoolkit.2.9.2-win64\bin\fastq-dump'
+    exe_path = Path()
     srr_path = r'D:\Documents\data\plasmo\new_accs.txt'
     out_path = r'Z:\plasmo_jz'
     
