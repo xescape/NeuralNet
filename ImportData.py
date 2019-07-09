@@ -75,10 +75,11 @@ def importData(dir, meta_path, key_path):
     with open(key_path) as input:
         key = pandas.read_csv(input, sep='\t', header=0, index_col=13).filter(items=['Run'])
 
-    
-    
-    meta = meta.merge(key, on='Sample_Name')
-    
+    try:
+        meta = meta.merge(key, on='Sample_Name')
+    except KeyError:
+        meta = meta.merge(key, left_index = True, right_index = True) #support for pandas 0.22
+       
     meta = meta.set_index('Run')
      
     popnet, max = importPopNet(dir)
