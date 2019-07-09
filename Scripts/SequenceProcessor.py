@@ -21,12 +21,18 @@ def run(ref, n, max_step, in_path, out_path):
     in_path is where the data is. sometimes you can't infer, but from it you can infer the prefix
     '''
     
-    def checkStep(text):
+    def checkStep(log_path):
         '''given the text of a log, return an int representing which step we were on'''
         success_msg = 'step {0}'
-
+        
+        try:
+            with open(log_path) as input:
+                d = input.read()
+        except:
+            return False
+                      
         for x in sorted(range(1, 8), reverse=True):
-            if success_msg.format(str(x)) in text:
+            if success_msg.format(str(x)) in d:
                 return x
         return 0
     
@@ -34,15 +40,16 @@ def run(ref, n, max_step, in_path, out_path):
     out_path = out_path / prefix
     log_path = out_path / 'log.txt'
     
+    if not os.path.isdir(out_path):
+        os.mkdir(out_path)
+    
+    logger = configLogger(str(n), log_path)
+    
     if check(log_path):
         print(prefix + ' already completed.')
         return
-        
-    if not os.path.isdir(out_path):
-        os.mkdir(out_path)
 
-    print('worker starting sample ' + prefix)
-    fqs = [x for x in in_path.iterdir() if 'fastq' in x.suffixes]
+    fqs = [x for x in in_path.iterdir() if '.fastq' in x.suffixes]
     sam_path = out_path / '{0}.sam'.format(prefix)
     bam_path = sam_path.with_suffix('.bam')
     bam_rg_path = sam_path.with_suffix('.rg.bam')
@@ -51,13 +58,13 @@ def run(ref, n, max_step, in_path, out_path):
     with open(log_path) as f:
         step = checkStep(f.read())
     
-    logger = configLogger(log_path)
+    print(ref)
     
     commands = [
         'bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
         'samtools view -bt {ref}.fai, -o {bam_path} {sam_path}'.format(ref=ref, bam_path=bam_path, sam_path=sam_path),
         'gatk AddOrReplaceReadGroups -I {bam_path} -O {bam_rg_path} -RGID {n} -RGSM {prefix} -RGLB lib{n} -RGPL illumina -RGPU unit{n}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path, n=str(n), prefix=prefix),
-        'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path),
+        'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
         'samtools sort -o {bam_path} {bam_rg_path}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path),
         'samtools index {bam_path}'.format(bam_path=bam_path),
         'gatk --java-options -Xmx8G HaplotypeCaller -T {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
@@ -77,13 +84,14 @@ def runRef(ref_path, out_path):
     '''
     preps the reference
     '''
-    new_ref_path = out_path / 'ref' / ref_path.name
     ref_file = [x for x in ref_path.iterdir() if x.suffix == '.fasta']
-    if len(ref_file) > 0:
+    if len(ref_file) > 1:
         raise(Exception('More than 1 fasta in ref folder'))
     else:
         ref_file = ref_file[0]
-    
+        
+    new_ref_path = out_path / 'ref' / ref_file.name
+    new_ref_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(ref_file, new_ref_path)
     ref_path = new_ref_path
     ref_dict = ref_path.with_suffix('.dict')
@@ -93,9 +101,9 @@ def runRef(ref_path, out_path):
     if not os.path.isfile(ref_dict):
         subprocess.run('gatk CreateSequenceDictionary -R {ref} -O {ref_dict}'.format(ref=ref_path, ref_dict=ref_dict), shell=True)
     
-def configLogger(path):
+def configLogger(name, path):
     
-    logger = logging.getLogger()
+    logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     
     formatter = logging.Formatter('%(asctime)s:\n%(message)s\n')
@@ -147,12 +155,13 @@ if __name__ == '__main__':
     # in_path = Path(sys.argv[1])
     # out_path = Path(sys.argv[2])
 
-    in_path = Path('/home/javi/seq/test')
+    in_path = Path('/home/javi/seq/plasmo_jz/test')
     out_path = Path('/data/new/javi/plasmo/new/rerun')
     
     os.chdir(out_path)
     log_path = out_path / 'log.txt'
-    ref_path = out_path / 'ref'
+    ref_path = out_path / 'ref' / '3d7.fasta'
+    logger = configLogger('main', log_path)
 
     TOTAL_STEPS = 7
     run_steps = 7
@@ -164,10 +173,10 @@ if __name__ == '__main__':
         
     if not out_path.is_dir():
         out_path.mkdir()
-    logger = configLogger(log_path)
+    
     
     samples = [x for x in in_path.iterdir() if x.is_dir() and x.name.startswith('SRR')]
-    args = [(ref_path, x, n, run_steps, out_path) for n, x in enumerate(samples)]
+    args = [(ref_path, n, run_steps, sample, out_path) for n, sample in enumerate(samples)]
     with mp.Pool() as pool:
         pool.starmap(run, args)
 
