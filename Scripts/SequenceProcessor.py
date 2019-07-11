@@ -67,17 +67,17 @@ def run(ref, n, max_step, in_path, out_path):
         'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
         'samtools sort -o {bam_path} {bam_rg_path}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path),
         'samtools index {bam_path}'.format(bam_path=bam_path),
-        'gatk --java-options -Xmx8G HaplotypeCaller -T {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
+        'gatk --java-options -Xmx8G HaplotypeCaller -R {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
     ]
 
     names = ['bwa', 'samtools view', 'Add/ReplaceRG', 'ValidateSam', 'samtools sort', 'samtools index', 'HaplotypeCaller']
 
     for x in range(step,max_step):
         try:
-            subprocess.run(commands[x], shell=True)
+            subprocess.run(commands[x], shell=True, check=True)
             logger.info('step {0}'.format(x+1))
-        except:
-            logger.error('error encountered during {x}({desc})'.format(x=str(x), desc=names[x]))
+        except subprocess.CalledProcessError as e:
+            logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
             return
 
 def runRef(ref_path, out_path):
