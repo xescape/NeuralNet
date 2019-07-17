@@ -39,7 +39,20 @@ def run(ref, n, max_step, in_path, out_path):
     prefix = in_path.name
     out_path = out_path / prefix
     log_path = out_path / 'log.txt'
+    lock_path = out_path / '{0}.lock'.format(os.getpid())
+
+    #lock
+    if len(list(out_path.glob('*.lock'))) > 0:
+        if not lock_path.is_file():
+            return
+    else:
+        lock_path.touch()
+
+    if len(list(out_path.glob('*.lock'))) != 1:
+        lock_path.unlink() #some race condition caused there to be two lock files. give up. 
+        return 
     
+    #setup and check previous completion
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
     
@@ -78,7 +91,11 @@ def run(ref, n, max_step, in_path, out_path):
             logger.info('step {0}'.format(x+1))
         except subprocess.CalledProcessError as e:
             logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
+            lock_path.unlink() #remove lock
             return
+    
+    lock_path.unlink() #remove lock upon completion
+
 
 def runRef(ref_path, out_path):
     '''
@@ -155,8 +172,12 @@ if __name__ == '__main__':
     # in_path = Path(sys.argv[1])
     # out_path = Path(sys.argv[2])
 
-    in_path = Path('/home/javi/seq/plasmo_jz/test')
-    out_path = Path('/data/new/javi/plasmo/new/rerun')
+    if sys.argv[1] == 'local':
+        in_path = Path('/home/javi/seq/plasmo_jz/test')
+        out_path = Path('/data/new/javi/plasmo/new/rerun')
+    else:
+        in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz')
+        out_path = Path('/scratch/j/jparkin/xescape/plasmo/out')
     
     os.chdir(out_path)
     log_path = out_path / 'log.txt'
