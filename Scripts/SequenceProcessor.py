@@ -178,7 +178,7 @@ if __name__ == '__main__':
         in_path = Path('/d/data/plasmo/test')
         out_path = Path('/d/data/plasmo/test/out')
     else:
-        in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz/test')
+        in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz')
         out_path = Path('/scratch/j/jparkin/xescape/plasmo/out')
     
     os.chdir(out_path)
