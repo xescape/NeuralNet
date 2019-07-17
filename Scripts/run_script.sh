@@ -1,8 +1,8 @@
 #!/bin/bash 
-#SBATCH --nodes=2
-#SBATCH --ntasks=80
-#SBATCH --time=1:00:00
-#SBATCH --job-name mpi_job
+#SBATCH --nodes=1
+#SBATCH --ntasks=40
+#SBATCH --time=8:00:00
+#SBATCH --job-name seqprocess
 #SBATCH --output=mpi_output_%j.txt
 #SBATCH --mail-type=FAIL
 
