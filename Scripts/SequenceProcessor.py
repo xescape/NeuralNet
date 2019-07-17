@@ -176,7 +176,7 @@ if __name__ == '__main__':
         in_path = Path('/home/javi/seq/plasmo_jz/test')
         out_path = Path('/data/new/javi/plasmo/new/rerun')
     else:
-        in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz')
+        in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz/test')
         out_path = Path('/scratch/j/jparkin/xescape/plasmo/out')
     
     os.chdir(out_path)
