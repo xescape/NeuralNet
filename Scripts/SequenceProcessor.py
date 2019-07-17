@@ -41,6 +41,10 @@ def run(ref, n, max_step, in_path, out_path):
     log_path = out_path / 'log.txt'
     lock_path = out_path / '{0}.lock'.format(os.getpid())
 
+    #setup and check previous completion
+    if not os.path.isdir(out_path):
+        os.mkdir(out_path)
+    
     #lock
     if len(list(out_path.glob('*.lock'))) > 0:
         if not lock_path.is_file():
@@ -52,9 +56,7 @@ def run(ref, n, max_step, in_path, out_path):
         lock_path.unlink() #some race condition caused there to be two lock files. give up. 
         return 
     
-    #setup and check previous completion
-    if not os.path.isdir(out_path):
-        os.mkdir(out_path)
+    
     
     logger = configLogger(str(n), log_path)
     
@@ -173,15 +175,15 @@ if __name__ == '__main__':
     # out_path = Path(sys.argv[2])
 
     if sys.argv[1] == 'local':
-        in_path = Path('/home/javi/seq/plasmo_jz/test')
-        out_path = Path('/data/new/javi/plasmo/new/rerun')
+        in_path = Path('/d/data/plasmo/test')
+        out_path = Path('/d/data/plasmo/test/out')
     else:
         in_path = Path('/scratch/j/jparkin/xescape/plasmo/plasmo_jz/test')
         out_path = Path('/scratch/j/jparkin/xescape/plasmo/out')
     
     os.chdir(out_path)
     log_path = out_path / 'log.txt'
-    ref_path = out_path / 'ref' / '3d7.fasta'
+    ref_path = out_path / 'ref' / '3D7.fasta'
     logger = configLogger('main', log_path)
 
     TOTAL_STEPS = 7

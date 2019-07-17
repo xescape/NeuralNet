@@ -3,8 +3,11 @@ from pathlib import Path
 import sys
 
 if __name__ == '__main__':
-
-    out_path = Path(sys.argv[1])
+    if sys.argv[1] == 'local':
+        out_path = Path('/d/data/plasmo/test/out')
+    else:
+        out_path = Path('/scratch/j/jparkin/xescape/plasmo/out')
+    
     lock_files = out_path.glob('**/*.lock')
 
     for f in lock_files:
