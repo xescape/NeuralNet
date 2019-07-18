@@ -35,68 +35,70 @@ def run(ref, n, max_step, in_path, out_path):
             if success_msg.format(str(x)) in d:
                 return x
         return 0
-    
-    prefix = in_path.name
-    out_path = out_path / prefix
-    log_path = out_path / 'log.txt'
-    lock_path = out_path / '{0}.lock'.format(os.getpid())
+    try:
+        prefix = in_path.name
+        out_path = out_path / prefix
+        log_path = out_path / 'log.txt'
+        lock_path = out_path / '{0}.lock'.format(os.getpid())
 
-    #setup and check previous completion
-    if not os.path.isdir(out_path):
-        os.mkdir(out_path)
-    
-    #lock
-    if len(list(out_path.glob('*.lock'))) > 0:
-        if not lock_path.is_file():
+        #setup and check previous completion
+        if not os.path.isdir(out_path):
+            os.mkdir(out_path)
+        
+        #lock
+        if len(list(out_path.glob('*.lock'))) > 0:
+            if not lock_path.is_file():
+                return
+        else:
+            lock_path.touch()
+
+        if len(list(out_path.glob('*.lock'))) != 1:
+            lock_path.unlink() #some race condition caused there to be two lock files. give up. 
+            return 
+        
+        
+        
+        logger = configLogger(str(n), log_path)
+        
+        if check(log_path):
+            print(prefix + ' already completed.')
             return
-    else:
-        lock_path.touch()
 
-    if len(list(out_path.glob('*.lock'))) != 1:
-        lock_path.unlink() #some race condition caused there to be two lock files. give up. 
-        return 
-    
-    
-    
-    logger = configLogger(str(n), log_path)
-    
-    if check(log_path):
-        print(prefix + ' already completed.')
-        return
+        fqs = [x for x in in_path.iterdir() if '.fastq' in x.suffixes]
+        sam_path = out_path / '{0}.sam'.format(prefix)
+        bam_path = sam_path.with_suffix('.bam')
+        bam_rg_path = sam_path.with_suffix('.rg.bam')
+        vcf_path = sam_path.with_suffix('.g.vcf')
+        
+        with open(log_path) as f:
+            step = checkStep(f.read())
+        
+        print(ref)
+        
+        commands = [
+            'bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
+            'samtools view -bt {ref}.fai, -o {bam_path} {sam_path}'.format(ref=ref, bam_path=bam_path, sam_path=sam_path),
+            'gatk AddOrReplaceReadGroups -I {bam_path} -O {bam_rg_path} -RGID {n} -RGSM {prefix} -RGLB lib{n} -RGPL illumina -RGPU unit{n}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path, n=str(n), prefix=prefix),
+            'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
+            'samtools sort -o {bam_path} {bam_rg_path}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path),
+            'samtools index {bam_path}'.format(bam_path=bam_path),
+            'gatk --java-options -Xmx8G HaplotypeCaller -R {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
+        ]
 
-    fqs = [x for x in in_path.iterdir() if '.fastq' in x.suffixes]
-    sam_path = out_path / '{0}.sam'.format(prefix)
-    bam_path = sam_path.with_suffix('.bam')
-    bam_rg_path = sam_path.with_suffix('.rg.bam')
-    vcf_path = sam_path.with_suffix('.g.vcf')
-    
-    with open(log_path) as f:
-        step = checkStep(f.read())
-    
-    print(ref)
-    
-    commands = [
-        'bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
-        'samtools view -bt {ref}.fai, -o {bam_path} {sam_path}'.format(ref=ref, bam_path=bam_path, sam_path=sam_path),
-        'gatk AddOrReplaceReadGroups -I {bam_path} -O {bam_rg_path} -RGID {n} -RGSM {prefix} -RGLB lib{n} -RGPL illumina -RGPU unit{n}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path, n=str(n), prefix=prefix),
-        'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
-        'samtools sort -o {bam_path} {bam_rg_path}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path),
-        'samtools index {bam_path}'.format(bam_path=bam_path),
-        'gatk --java-options -Xmx8G HaplotypeCaller -R {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
-    ]
+        names = ['bwa', 'samtools view', 'Add/ReplaceRG', 'ValidateSam', 'samtools sort', 'samtools index', 'HaplotypeCaller']
 
-    names = ['bwa', 'samtools view', 'Add/ReplaceRG', 'ValidateSam', 'samtools sort', 'samtools index', 'HaplotypeCaller']
-
-    for x in range(step,max_step):
-        try:
-            subprocess.run(commands[x], shell=True, check=True)
-            logger.info('step {0}'.format(x+1))
-        except subprocess.CalledProcessError as e:
-            logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
-            lock_path.unlink() #remove lock
-            return
-    
-    lock_path.unlink() #remove lock upon completion
+        for x in range(step,max_step):
+            try:
+                subprocess.run(commands[x], shell=True, check=True)
+                logger.info('step {0}'.format(x+1))
+            except subprocess.CalledProcessError as e:
+                logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
+                lock_path.unlink() #remove lock
+                return
+    except:
+        pass
+    finally:
+        lock_path.unlink()#remove lock upon completion
 
 
 def runRef(ref_path, out_path):
