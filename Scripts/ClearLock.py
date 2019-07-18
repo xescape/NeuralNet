@@ -13,5 +13,5 @@ if __name__ == '__main__':
     for f in lock_files:
         f.unlink()
     
-    print('{0} lockfiles cleared'.len(lock_files)))
+    print('{0} lockfiles cleared'.len(lock_files))
     
