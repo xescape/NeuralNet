@@ -52,7 +52,7 @@ def run(ref, n, max_step, in_path, out_path):
                 return
         else:
             lock_path.touch()
-	        is_locked = True
+            is_locked = True
 
         if len(list(out_path.glob('*.lock'))) != 1:
             lock_path.unlink() #some race condition caused there to be two lock files. give up. 
@@ -100,8 +100,8 @@ def run(ref, n, max_step, in_path, out_path):
     except:
         pass
     finally:
-	if is_locked:
-        lock_path.unlink()#remove lock upon completion
+        if is_locked:
+            lock_path.unlink()#remove lock upon completion
 
 
 def runRef(ref_path, out_path):
