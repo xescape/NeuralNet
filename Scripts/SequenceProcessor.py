@@ -40,7 +40,7 @@ def run(ref, n, max_step, in_path, out_path):
         out_path = out_path / prefix
         log_path = out_path / 'log.txt'
         lock_path = out_path / '{0}.lock'.format(os.getpid())
-	is_locked = False
+        is_locked = False
 
         #setup and check previous completion
         if not os.path.isdir(out_path):
@@ -101,7 +101,7 @@ def run(ref, n, max_step, in_path, out_path):
         pass
     finally:
 	if is_locked:
-            lock_path.unlink()#remove lock upon completion
+        lock_path.unlink()#remove lock upon completion
 
 
 def runRef(ref_path, out_path):
