@@ -10,8 +10,10 @@ if __name__ == '__main__':
     
     lock_files = out_path.glob('**/*.lock')
 
+    count = 0
     for f in lock_files:
+        count += 1
         f.unlink()
     
-    print('{0} lockfiles cleared'.format(len(lock_files)))
+    print('{0} lockfiles cleared'.format(count))
     

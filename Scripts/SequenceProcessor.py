@@ -72,10 +72,10 @@ def run(ref, n, max_step, in_path, out_path):
         bam_rg_path = sam_path.with_suffix('.rg.bam')
         vcf_path = sam_path.with_suffix('.g.vcf')
         
-        with open(log_path) as f:
-            step = checkStep(f.read())
         
-        print(ref)
+        step = checkStep(log_path)
+        
+        print('Sample {sample} starting from step {step}'.format(sample=prefix, step=step))
         
         commands = [
             'bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
@@ -84,7 +84,7 @@ def run(ref, n, max_step, in_path, out_path):
             'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
             'samtools sort -o {bam_path} {bam_rg_path}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path),
             'samtools index {bam_path}'.format(bam_path=bam_path),
-            'gatk --java-options -Xmx8G HaplotypeCaller -R {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
+            'gatk --java-options -Xmx8G HaplotypeCaller -R {ref} -I {bam_path} -O {vcf_path} -ERC GVCF -ploidy 1 -nct 2'.format(ref=ref, bam_path=bam_path, vcf_path=vcf_path)
         ]
 
         names = ['bwa', 'samtools view', 'Add/ReplaceRG', 'ValidateSam', 'samtools sort', 'samtools index', 'HaplotypeCaller']
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     
     samples = [x for x in in_path.iterdir() if x.is_dir() and x.name.startswith('SRR')]
     args = [(ref_path, n, run_steps, sample, out_path) for n, sample in enumerate(samples)]
-    with mp.Pool() as pool:
+    with mp.Pool(processes=int(mp.cpu_count() // 2)) as pool:
         pool.starmap(run, args)
 
 
