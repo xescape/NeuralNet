@@ -97,6 +97,7 @@ def run(ref, n, max_step, in_path, out_path):
                 logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
                 lock_path.unlink() #remove lock
                 return
+        logger.info('COMPLETED')
     except:
         pass
     finally:
@@ -209,7 +210,7 @@ if __name__ == '__main__':
         pool.starmap(run, args)
 
 
-
+    print('End of Sequence Processor')
 
 
     #old run process
