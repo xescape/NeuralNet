@@ -136,7 +136,7 @@ if __name__ == '__main__':
         dir = Path('/d/data/plasmo/natcom_data')
     else:
         dir = Path('/scratch/j/jparkin/xescape/plasmo/natcom')
-    in_path = dir / 'test_ids.txt'
+    in_path = dir / 'ids.txt'
     out_path = dir / 'bams'
     log_path = dir / 'log.txt'
     main(in_path, out_path, log_path)
