@@ -52,7 +52,7 @@ def loadTable(in_path):
     
     return d.strip('\n').split('\n')
     
-def verify(sample_list):
+def verify(sample_list, missing_path):
     '''
     given a properly configured ftp object at the desired directory
     checks if all the files are in there
@@ -63,7 +63,7 @@ def verify(sample_list):
         ftp_files = ftp.nlst()
     except:
         sleep(3)
-        return verify(sample_list)
+        return verify(sample_list, missing_path)
 
     missing = []
     for sample in sample_list:
@@ -72,9 +72,11 @@ def verify(sample_list):
     
     if len(missing) > 0:
         print('The following files are missing: {0}'.format(', '.join(missing)))
-        return False 
+        with open(missing_path, 'w') as output:
+            output.write('\n'.join(missing))
+        return [sample for sample in sample_list if sample not in missing] 
     else:
-        return True
+        return sample_list
 
 def filter(sample_list, log_path):
     '''
@@ -111,7 +113,7 @@ def configLogger(path):
     
     return logger
 
-def main(in_path, out_path, log_path):
+def main(in_path, out_path, log_path, missing_path):
     '''
     main xd
     '''
@@ -121,9 +123,7 @@ def main(in_path, out_path, log_path):
 
     configLogger(log_path)
 
-    if not verify(sample_list):
-        print('terminating due to verification failure')
-        return
+    sample_list = verify(sample_list, missing_path):
 
     with Pool(processes = n_threads, initializer = workerInit) as pool:
         pool.starmap(worker, [(sample, out_path) for sample in sample_list])
@@ -139,5 +139,6 @@ if __name__ == '__main__':
     in_path = dir / 'ids.txt'
     out_path = dir / 'bams'
     log_path = dir / 'log.txt'
-    main(in_path, out_path, log_path)
+    missing_path = dir / 'missing.txt'
+    main(in_path, out_path, log_path, missing_path)
     
