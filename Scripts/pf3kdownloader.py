@@ -123,7 +123,7 @@ def main(in_path, out_path, log_path, missing_path):
 
     configLogger(log_path)
 
-    sample_list = verify(sample_list, missing_path):
+    sample_list = verify(sample_list, missing_path)
 
     with Pool(processes = n_threads, initializer = workerInit) as pool:
         pool.starmap(worker, [(sample, out_path) for sample in sample_list])
