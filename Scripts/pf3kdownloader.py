@@ -115,7 +115,7 @@ def main(in_path, out_path, log_path):
     '''
     main xd
     '''
-    n_threads = 2
+    n_threads = 4
     sample_list = loadTable(in_path)
     sample_list = filter(sample_list, log_path)
 
