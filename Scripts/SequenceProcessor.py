@@ -16,8 +16,8 @@ import shutil
 
 def run(ref, n, max_step, in_path, out_path):
     '''
-    takes up one thread, runs everything from bwa to haplotypecaller
-    n is just a counter
+    takes up TWO threads. Runs everything 
+    n is a counter used as the RG so every sample is different
     in_path is where the data is. sometimes you can't infer, but from it you can infer the prefix
     '''
     
@@ -78,7 +78,7 @@ def run(ref, n, max_step, in_path, out_path):
         print('Sample {sample} starting from step {step}'.format(sample=prefix, step=step))
         
         commands = [
-            'bwa mem {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
+            'bwa mem -t 2 {0} {1} {2} > {3}'.format(ref, fqs[0], fqs[1], sam_path),
             'samtools view -bt {ref}.fai, -o {bam_path} {sam_path}'.format(ref=ref, bam_path=bam_path, sam_path=sam_path),
             'gatk AddOrReplaceReadGroups -I {bam_path} -O {bam_rg_path} -RGID {n} -RGSM {prefix} -RGLB lib{n} -RGPL illumina -RGPU unit{n}'.format(bam_path=bam_path, bam_rg_path=bam_rg_path, n=str(n), prefix=prefix),
             'gatk ValidateSamFile -I {bam_rg_path}'.format(bam_rg_path=bam_rg_path),
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     
     os.chdir(out_path)
     log_path = out_path / 'log.txt'
-    ref_path = out_path / 'ref' / '3D7.fasta'
+    ref_path = out_path / 'ref' / '3d7.fasta'
     logger = configLogger('main', log_path)
 
     TOTAL_STEPS = 7
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     
     samples = [x for x in in_path.iterdir() if x.is_dir() and x.name.startswith('SRR')]
     args = [(ref_path, n, run_steps, sample, out_path) for n, sample in enumerate(samples)]
-    with mp.Pool(processes=int(mp.cpu_count() // 2)) as pool:
+    with mp.Pool(processes=int(mp.cpu_count() // 2)) as pool: #gives two threads to each process
         pool.starmap(run, args)
 
 
