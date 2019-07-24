@@ -4,38 +4,25 @@ automatic multithread download of pf3k data, and possibly all of malariagen stuf
 import logging
 import ftplib
 import sys
-from os import getpid
+import re
+from os import getpid, chdir
 from time import sleep
 from pathlib import Path 
 from multiprocessing import Pool, cpu_count
-# from subprocess import run, CalledProcessError
-
-def workerInit():
-    global ftp
-    try:
-        ftp = ftplib.FTP('ngs.sanger.ac.uk', 'anonymous', '')
-        ftp.cwd('production/pf3k/release_4/BAM')
-        print('{0} connected'.format(getpid()))
-    except:
-        sleep(3)
-        print('reconnecting on thread {0}'.format(getpid()))
-        workerInit()
+from subprocess import run, CalledProcessError
 
 def worker(prefix, out_path):
     
     logger = logging.getLogger()
-    global ftp
-    fn = '{prefix}.bam'.format(prefix=prefix)
-    file_path = out_path / fn
+    # fn = '{prefix}.bam'.format(prefix=prefix)
+    chdir(out_path)
     try:
         print('{0} starting sample {1}'.format(getpid(), prefix))
-        ftp.retrbinary('RETR {0}'.format(fn), writeFile(file_path), 8192)
+        run('wget -nd -c -t 10 --random-wait ftp://ngs.sanger.ac.uk/production/pf3k/release_4/BAM/{0}.bam'.format(prefix), shell=True, check=True)
         logger.info(prefix)
-    except Exception as e:
+    except CalledProcessError as e:
         print(e)
-        sleep(3)
-        print('reconnecting on thread {0}'.format(getpid()))
-        workerInit()
+
 
 def writeFile(path):
     def innerWrite(data):
@@ -86,9 +73,11 @@ def filter(sample_list, log_path):
         with open(log_path) as input:
             d = input.read()
         
-        done = d.strip('\n').split('\n')
+        pat = re.compile('(?=:\n).+')
+        done = re.findall(pat, d)
         
         not_done = [x for x in sample_list if x not in done]
+        print('{0} sampled already completed. {1} to go.'.format(len(done), len(not_done)))
 
         return not_done
     except:
@@ -117,7 +106,7 @@ def main(in_path, out_path, log_path, missing_path):
     '''
     main xd
     '''
-    n_threads = 4
+    n_threads = 8
     sample_list = loadTable(in_path)
     sample_list = filter(sample_list, log_path)
 
@@ -125,7 +114,7 @@ def main(in_path, out_path, log_path, missing_path):
 
     sample_list = verify(sample_list, missing_path)
 
-    with Pool(processes = n_threads, initializer = workerInit) as pool:
+    with Pool(processes = n_threads) as pool:
         pool.starmap(worker, [(sample, out_path) for sample in sample_list])
     
     print('Main loop complete')
