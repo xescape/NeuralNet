@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from pathlib import Path
 from math import sqrt, pow
 
+import resnet
+
 def makeModel(input_dim):
     '''
     this is the main function to make the model. start small
@@ -75,41 +77,47 @@ def importData(paintings_path, meta_path):
 
 def run(df, meta_df):
 
+ 
     #actual NN params
 
     #make the data
     encoder = ohe(sparse=False)
     data = encoder.fit_transform(df.to_numpy())
-    s = data.shape 
-    data = data.reshape((data.shape[0], data.shape[1], 1))
+    s = data.shape
+    data = np.pad(data, ((0,0),(0,256 - s[1])), 'constant')
+    data = data.reshape((data.shape[0], 16, 16, 1))
 
-    meta = normalize(meta_df.to_numpy(), axis=0, norm='max')
+    # meta = normalize(meta_df.to_numpy(), axis=0, norm='max')
+    meta = meta_df.to_numpy()
+    meta = np.round(meta, decimals=0).astype('str')
+    meta = encoder.fit_transform(meta)
 
 
     data_train, data_test, meta_train, meta_test = train_test_split(data, meta, test_size=0.1)
 
 
-    #get the model
-    input_dim = data_train.shape[1]
-    batch_size = input_dim // 10
-    autoencoder, encoder = makeAutoEncoder(input_dim)
-    model = makeModel(input_dim)
+    # #get the model
+    # input_dim = data_train.shape[1]
+    # batch_size = input_dim // 10
+    # autoencoder, encoder = makeAutoEncoder(input_dim)
+    # model = makeModel(input_dim)
+    # #train autoencoder
+    # autoencoder.fit(data_train, data_train, epochs=1000, batch_size=input_dim, shuffle=True, verbose=0)
+    # autoencoder.evaluate(data_train, data_train)
+    # preds = autoencoder.predict(data_train)
+    # print('errors: {0}'.format(np.sum(np.absolute(data_train - preds)) / data_train.shape[0] / data_train.shape[1]))
 
-    #train autoencoder
-    autoencoder.fit(data_train, data_train, epochs=1000, batch_size=input_dim, shuffle=True, verbose=0)
-    autoencoder.evaluate(data_train, data_train)
 
-    preds = autoencoder.predict(data_train)
-
-    print('errors: {0}'.format(np.sum(np.absolute(data_train - preds)) / data_train.shape[0] / data_train.shape[1]))
+    #resnet
+    model = resnet.resnet1(in_shape=(16, 16, 1), n_classes=32, opt='adam')
 
     # print('real\n', data_train[0].reshape((8, 29)))
     # print('pred\n', preds[0].reshape((8, 29)))
 
-    # #train and eval
-    # model.fit(data_train, meta_train, epochs=500, batch_size=batch_size, verbose = 0)
-    # print('eval')
-    # model.evaluate(data_test, meta_test, batch_size=batch_size)
+    #train and eval
+    model.fit(data_train, meta_train, epochs=100, batch_size=100, shuffle=True, verbose = 1)
+    print('eval')
+    model.evaluate(data_test, meta_test, batch_size=100)
 
     # print('predict')
     # res = model.predict(data_test)
