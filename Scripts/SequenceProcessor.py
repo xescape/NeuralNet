@@ -95,7 +95,6 @@ def run(ref, n, max_step, in_path, out_path):
                 logger.info('step {0}'.format(x+1))
             except subprocess.CalledProcessError as e:
                 logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
-                lock_path.unlink() #remove lock
                 return
         logger.info('COMPLETED')
     except:
