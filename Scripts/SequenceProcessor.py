@@ -54,8 +54,7 @@ def run(ref, n, max_step, in_path, out_path):
             lock_path.touch()
             is_locked = True
 
-        if len(list(out_path.glob('*.lock'))) != 1:
-            lock_path.unlink() #some race condition caused there to be two lock files. give up. 
+        if len(list(out_path.glob('*.lock'))) != 1: #some race condition caused there to be two lock files. give up. 
             return 
         
         
