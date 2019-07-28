@@ -100,7 +100,7 @@ def run(ref, n, max_step, in_path, out_path):
     except:
         pass
     finally:
-        if is_locked:
+        if is_locked and lock_path.is_file():
             lock_path.unlink()#remove lock upon completion
 
 
