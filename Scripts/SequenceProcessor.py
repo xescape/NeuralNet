@@ -54,11 +54,8 @@ def run(ref, n, max_step, in_path, out_path):
             lock_path.touch()
             is_locked = True
 
-        if len(list(out_path.glob('*.lock'))) != 1:
-            lock_path.unlink() #some race condition caused there to be two lock files. give up. 
-            return 
-        
-        
+        if len(list(out_path.glob('*.lock'))) != 1: 
+            return #some race condition caused there to be two lock files. give up. 
         
         logger = configLogger(str(n), log_path)
         
@@ -97,8 +94,8 @@ def run(ref, n, max_step, in_path, out_path):
                 logger.error('error encountered during {x}({desc}):\n{cmd}\n{msg}'.format(x=str(x), desc=names[x], cmd=e.cmd, msg=e.stderr))
                 return
         logger.info('COMPLETED')
-    except:
-        pass
+    except Exception as e:
+        logger.error('error encountered during worker setup:\n{0}'.format(e))
     finally:
         if is_locked:
             lock_path.unlink()#remove lock upon completion
@@ -205,7 +202,7 @@ if __name__ == '__main__':
     
     samples = [x for x in in_path.iterdir() if x.is_dir() and x.name.startswith('SRR')]
     args = [(ref_path, n, run_steps, sample, out_path) for n, sample in enumerate(samples)]
-    with mp.Pool() as pool:
+    with mp.Pool(processes=int(mp.cpu_count() // 2)) as pool: #running out of memory
         pool.starmap(run, args)
 
 
