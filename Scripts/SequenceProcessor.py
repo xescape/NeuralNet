@@ -54,8 +54,15 @@ def run(ref, n, max_step, in_path, out_path):
             lock_path.touch()
             is_locked = True
 
+<<<<<<< HEAD
         if len(list(out_path.glob('*.lock'))) != 1: 
             return #some race condition caused there to be two lock files. give up. 
+=======
+        if len(list(out_path.glob('*.lock'))) != 1: #some race condition caused there to be two lock files. give up. 
+            return 
+        
+        
+>>>>>>> 0afc8698a83e17105e66cacced2bbc70f7198252
         
         logger = configLogger(str(n), log_path)
         
@@ -97,7 +104,7 @@ def run(ref, n, max_step, in_path, out_path):
     except Exception as e:
         logger.error('error encountered during worker setup:\n{0}'.format(e))
     finally:
-        if is_locked:
+        if is_locked and lock_path.is_file():
             lock_path.unlink()#remove lock upon completion
 
 

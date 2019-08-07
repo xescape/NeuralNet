@@ -53,9 +53,9 @@ def makeAutoEncoder(input_dim):
     autoencoder.summary()
     return autoencoder, encoded
 
-def small_val_reg(weight_matrix):
-    K = tf.keras.backend
-    return 0.1 / K.sum(K.abs(weight_matrix))
+# def small_val_reg(weight_matrix):
+#     K = tf.keras.backend
+#     return 0.1 / K.sum(K.abs(weight_matrix))
     
 
 
@@ -84,8 +84,9 @@ def run(df, meta_df):
     encoder = ohe(sparse=False)
     data = encoder.fit_transform(df.to_numpy())
     s = data.shape
-    data = np.pad(data, ((0,0),(0,256 - s[1])), 'constant')
-    data = data.reshape((data.shape[0], 16, 16, 1))
+    data = data.reshape((s[0], s[1], 1))
+    # data = np.pad(data, ((0,0),(0,256 - s[1])), 'constant')
+    # data = data.reshape((data.shape[0], 16, 16, 1))
 
     # meta = normalize(meta_df.to_numpy(), axis=0, norm='max')
     meta = meta_df.to_numpy()
