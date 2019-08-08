@@ -22,6 +22,6 @@ module load bwa/0.7.17
 
 dbpath=plasmo_db
 mappath=sample_map.txt
-interval=3d7.interval
+interval=3d7.intervals
 
 gatk --java-options "-Xmx8g -Xms8g" GenomicsDBImport --genomicsdb-workspace-path $dbpath --batch-size 50 -L $interval --sample-name-map $mappath --tmp-dir=./tmp --reader-threads 40
