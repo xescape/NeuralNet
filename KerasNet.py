@@ -39,13 +39,14 @@ def makeAutoEncoder(input_dim):
     # decoded = layers.Dense(input_dim, activation='sigmoid')(encoded)
 
     input_layer = layers.Input(shape=(input_dim,1))
-    encoded = layers.Conv1D(filters=16, kernel_size=(3,), activation='relu', padding='same')(input_layer)
-    encoded = layers.Conv1D(filters=16, kernel_size=(3,), activation='relu', padding='same')(encoded)
-    encoded = layers.MaxPooling1D(4, padding='same')(encoded)
+    encoded = layers.Conv1D(filters=16, kernel_size=(21,), activation='relu', padding='same')(input_layer)
+    # encoded = layers.Conv1D(filters=16, kernel_size=(3,), activation='relu', padding='same')(encoded)
+    encoded = layers.MaxPooling1D(2, padding='same')(encoded)
+    encoded = layers.Conv1D(filters=1, kernel_size=(1,), activation='relu', padding='same')(encoded)
 
-    decoded = layers.Conv1D(filters=16, kernel_size=(3,), activation='relu', padding='same')(encoded)
-    decoded = layers.UpSampling1D(4)(decoded)
-    decoded = layers.Conv1D(filters=1, kernel_size=(3,), activation='sigmoid', padding='same')(decoded)
+    decoded = layers.Conv1D(filters=16, kernel_size=(1,), activation='relu', padding='same')(encoded)
+    decoded = layers.UpSampling1D(2)(decoded)
+    decoded = layers.Conv1D(filters=1, kernel_size=(21,), activation='sigmoid', padding='same')(decoded)
 
     autoencoder = tf.keras.models.Model(input_layer, decoded)
     autoencoder.compile(optimizer=optimizers.Adagrad(lr=0.05), loss='binary_crossentropy', metrics=['accuracy'])
@@ -96,33 +97,37 @@ def run(df, meta_df):
 
     data_train, data_test, meta_train, meta_test = train_test_split(data, meta, test_size=0.1)
 
-
     # #get the model
-    # input_dim = data_train.shape[1]
+    input_dim = data_train.shape[1]
     # batch_size = input_dim // 10
-    # autoencoder, encoder = makeAutoEncoder(input_dim)
+    autoencoder, encoder = makeAutoEncoder(input_dim)
     # model = makeModel(input_dim)
-    # #train autoencoder
-    # autoencoder.fit(data_train, data_train, epochs=1000, batch_size=input_dim, shuffle=True, verbose=0)
-    # autoencoder.evaluate(data_train, data_train)
+    #train autoencoder
+    autoencoder.fit(data_train, data_train, epochs=3000, batch_size=input_dim, shuffle=True, verbose=0)
+    res = autoencoder.evaluate(data_train, data_train)
+    base_accuracy = np.count_nonzero(data_train) / (data_train.shape[0] * data_train.shape[1])
+    print('base accuracy is: {0}'.format(base_accuracy))
+    real_accuracy = (res[1] - base_accuracy) / (1 - base_accuracy)
+    print('real accuracy is: {0}'.format(real_accuracy))
+    
     # preds = autoencoder.predict(data_train)
     # print('errors: {0}'.format(np.sum(np.absolute(data_train - preds)) / data_train.shape[0] / data_train.shape[1]))
 
 
-    #resnet
-    model = resnet.resnet1(in_shape=(16, 16, 1), n_classes=32, opt='adam')
+    # #resnet
+    # model = resnet.resnet1(in_shape=(16, 16, 1), n_classes=32, opt='adam')
 
     # print('real\n', data_train[0].reshape((8, 29)))
     # print('pred\n', preds[0].reshape((8, 29)))
 
-    #train and eval
-    model.fit(data_train, meta_train, epochs=100, batch_size=100, shuffle=True, verbose = 1)
-    print('eval')
-    model.evaluate(data_test, meta_test, batch_size=100)
+    # #train and eval
+    # model.fit(data_train, meta_train, epochs=100, batch_size=100, shuffle=True, verbose = 1)
+    # print('eval')
+    # model.evaluate(data_test, meta_test, batch_size=100)
 
     # print('predict')
     # res = model.predict(data_test)
-    # # print('\n'.join(['{0}\t{1}'.format(x[0], x[1]) for x in zip(meta_test, res)]))
+    # print('\n'.join(['{0}\t{1}'.format(x[0], x[1]) for x in zip(meta_test, res)]))
     # print(rmsep(res, meta_test))
 
     return

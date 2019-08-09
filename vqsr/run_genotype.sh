@@ -12,7 +12,7 @@ module load gatk/4.1.2.0
 module load samtools/1.9
 module load bwa/0.7.17
 
-refpath=../ref/3d7.fasta
+refpath=/scratch/j/jparkin/xescape/plasmo/out/ref/3d7.fasta
 dbpath=plasmo_db
 
 gatk --java-options "-Xmx8g" GenotypeGVCFs -R $refpath -V gendb://$dbpath -O combined.vcf.gz --tmp-dir=./tmp

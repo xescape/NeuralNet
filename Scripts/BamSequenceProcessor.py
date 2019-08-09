@@ -73,7 +73,10 @@ def run(ref, in_path, out_path):
         print(e)
     finally:
         if is_locked and lock_path.is_file():
-            lock_path.unlink()#remove lock upon completion
+            try:
+                lock_path.unlink()#remove lock upon completion
+            except:
+                pass
 
 
 def runRef(ref_path, out_path):
