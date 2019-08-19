@@ -159,9 +159,9 @@ if __name__ == '__main__':
     args = sys.argv
     print('start')
     #arguments
-    n_samples = 200
-    n_positions = 200
-    n_factors = 16
+    n_samples = 150
+    n_positions = 2300
+    n_factors = 64
     p_regulatory = 0.5
     out_path = Path('/d/data/plasmo/newsim')
 

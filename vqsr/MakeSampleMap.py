@@ -14,8 +14,8 @@ if __name__ == "__main__":
         folder = '/d/data/plasmo/natcom_data/bams'
         output = '/d/data/plasmo/natcom_data/bams/sample_map.txt'
     else:
-        folder = '/scratch/j/jparkin/xescape/plasmo/out/vcfs' #folder name
-        output = '/scratch/j/jparkin/xescape/plasmo/out/vcfs/sample_map.txt' #file name
+        folder = '/scratch/j/jparkin/xescape/plasmo/nat_out/' #folder name
+        output = '/scratch/j/jparkin/xescape/plasmo/nat_out/vqsr/sample_map.txt' #file name
     
     
     in_path = Path(folder)
