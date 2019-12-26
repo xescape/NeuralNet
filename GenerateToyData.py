@@ -161,7 +161,7 @@ if __name__ == '__main__':
     #arguments
     n_samples = 150
     n_positions = 2300
-    n_factors = 64
+    n_factors = 128
     p_regulatory = 0.5
     out_path = Path('/d/data/plasmo/newsim')
 

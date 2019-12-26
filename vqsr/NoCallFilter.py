@@ -10,9 +10,9 @@ def nocall_check(line):
 
 if __name__ == "__main__":
     from pathlib import Path
-    dir = Path('/d/data/plasmo/training_data')
+    dir = Path('/d/data/plasmo/nat_out')
     nocall_path = dir / 'nocall.tsv'
-    table_path = dir / 'final.tsv'
+    table_path = dir / 'variants.tsv'
     out_path = dir / 'nocall_filtered.tsv'
 
     with open(nocall_path, 'r') as input:

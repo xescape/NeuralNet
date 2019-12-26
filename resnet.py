@@ -54,14 +54,14 @@ def resnet_block_w_bottlneck(in_tensor,
     return result
 
 def _pre_res_blocks(in_tensor):
-    conv = layers.Conv2D(8, 4, strides=2, padding='same')(in_tensor)
+    conv = layers.Conv2D(8, 3, strides=2, padding='same')(in_tensor)
     conv = _after_conv(conv)
     pool = layers.MaxPool2D(3, 2, padding='same')(conv)
     return pool
 
 def _post_res_blocks(in_tensor, n_classes):
     pool = layers.GlobalAvgPool2D()(in_tensor)
-    preds = layers.Dense(n_classes, activation='softmax')(pool)
+    preds = layers.Dense(n_classes)(pool)
     return preds
 
 def convx_wo_bottleneck(in_tensor, filters, n_times, downsample_1=False):
@@ -82,66 +82,67 @@ def convx_w_bottleneck(in_tensor, filters, n_times, downsample_1=False):
             res = resnet_block_w_bottlneck(res, filters)
     return res
 
-def _resnet(in_shape=(224,224,3),
-            n_classes=1000,
-            opt='sgd',
-            convx=[64, 128, 256, 512],
-            n_convx=[2, 2, 2, 2],
+def _resnet(in_shape,
+            n_classes,
+            opt,
+            # convx=[64, 128, 256, 512],
+            # n_convx=[2, 2, 2, 2],
+            convx,
+            n_convx,
             convx_fn=convx_wo_bottleneck):
     in_layer = layers.Input(in_shape)
-
     downsampled = _pre_res_blocks(in_layer)
 
     conv2x = convx_fn(downsampled, convx[0], n_convx[0])
     conv3x = convx_fn(conv2x, convx[1], n_convx[1], True)
     #lets make this smaller
-    # conv4x = convx_fn(conv3x, convx[2], n_convx[2], True)
+    conv4x = convx_fn(conv3x, convx[2], n_convx[2], True)
     # conv5x = convx_fn(conv4x, convx[3], n_convx[3], True)
 
     # preds = _post_res_blocks(conv5x, n_classes)
-    preds = _post_res_blocks(conv3x, n_classes)
+    preds = _post_res_blocks(conv4x, n_classes)
 
     model = Model(in_layer, preds)
-    model.compile(loss="categorical_crossentropy", optimizer=opt,
-	              metrics=["accuracy"])
+    model.compile(loss="mse", optimizer=opt,
+	              metrics=["mse"])
     return model
 
-def resnet1(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape, n_classes, opt, convx=[8,16])
+def resnet1(in_shape, n_classes, opt):
+    return _resnet(in_shape, n_classes, opt, convx=[8, 16, 32], n_convx=[2,2,2,2])
 
-def resnet18(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape, n_classes, opt)
+# def resnet18(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
+#     return _resnet(in_shape, n_classes, opt)
 
-def resnet34(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape,
-                  n_classes,
-                  opt,
-                  n_convx=[3, 4, 6, 3])
+# def resnet34(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
+#     return _resnet(in_shape,
+#                   n_classes,
+#                   opt,
+#                   n_convx=[3, 4, 6, 3])
 
-def resnet50(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape,
-                  n_classes,
-                  opt,
-                  [256, 512, 1024, 2048],
-                  [3, 4, 6, 3],
-                  convx_w_bottleneck)
+# def resnet50(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
+#     return _resnet(in_shape,
+#                   n_classes,
+#                   opt,
+#                   [256, 512, 1024, 2048],
+#                   [3, 4, 6, 3],
+#                   convx_w_bottleneck)
 
-def resnet101(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape,
-                  n_classes,
-                  opt,
-                  [256, 512, 1024, 2048],
-                  [3, 4, 23, 3],
-                  convx_w_bottleneck)
+# def resnet101(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
+#     return _resnet(in_shape,
+#                   n_classes,
+#                   opt,
+#                   [256, 512, 1024, 2048],
+#                   [3, 4, 23, 3],
+#                   convx_w_bottleneck)
 
-def resnet152(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-    return _resnet(in_shape,
-                  n_classes,
-                  opt,
-                  [256, 512, 1024, 2048],
-                  [3, 8, 36, 3],
-                  convx_w_bottleneck)
+# def resnet152(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
+#     return _resnet(in_shape,
+#                   n_classes,
+#                   opt,
+#                   [256, 512, 1024, 2048],
+#                   [3, 8, 36, 3],
+#                   convx_w_bottleneck)
 
-if __name__ == '__main__':
-    model = resnet50()
-    print(model.summary())
+# if __name__ == '__main__':
+#     model = resnet50()
+#     print(model.summary())
