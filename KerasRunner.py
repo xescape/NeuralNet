@@ -85,6 +85,12 @@ def makeScriptAndRun(script_path, root, p, mode):
         with open(sh_path, 'w') as sh:
             sh.write('\n'.join(sh_str))       
         subprocess.call(['sbatch', sh_path])
+    elif mode == 'scinet-test':
+        command = "python3 {script} -i {input} -o {output} -l {layers} -d {dropout}".format(script = script_path, input = root, output = folder, layers = ' '.join([str(x) for x in p[0]]), dropout = p[1])
+        sh_str = [getHeader(name, out_path, err_path), getMods(), command]
+        with open(sh_path, 'w') as sh:
+            sh.write('\n'.join(sh_str))       
+        subprocess.call(['bash', sh_path])
         
     print('job {0} submitted'.format(name))
 
