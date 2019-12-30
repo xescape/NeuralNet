@@ -18,8 +18,8 @@ def run(df, meta_df, out_path, params):
     logger = logging.getLogger('main')
     logger.info('New run with params layers: {0}, dropout {1}'.format(str(params['layers']), params['dropout']))
 
-    data = df.to_numpy()
-    meta = meta_df.to_numpy()
+    data = df.values
+    meta = meta_df.values
 
     #scale data to [0, 1]
     mms = MinMaxScaler()
