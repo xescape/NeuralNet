@@ -112,7 +112,7 @@ if __name__ == '__main__':
     if mode == 'local':
         script = '/d/workspace/NeuralNet/KerasNet.py' #location of the nn script itself
         root = '/d/data/plasmo/nn_scalar' #the root working directory. all jobs will be a separate directory under here. 
-    elif mode == 'scinet':
+    elif mode == 'scinet' or mode == 'scient-test':
         script = '/home/j/jparkin/xescape/NeuralNet/KerasNet.py'
         root = '/scratch/j/jparkin/xescape/nn_scalar'
     else:
