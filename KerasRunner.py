@@ -46,7 +46,7 @@ def getHeader(name, out_path, err_path):
 
 def getMods():
     
-    m = ['module load anaconda3/5.1.0', 'source activate tensorflow', '']
+    m = ['module load anaconda3/2018.12', 'source activate tensorflow', '']
     
     return "\n".join(m)
 
