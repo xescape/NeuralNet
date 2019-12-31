@@ -116,7 +116,7 @@ if __name__ == '__main__':
         script = '/home/j/jparkin/xescape/NeuralNet/KerasNet.py'
         root = '/scratch/j/jparkin/xescape/nn_scalar'
     elif mode == 'calypto':
-        script = '/home/javi/NeuralNet'
+        script = '/home/javi/NeuralNet/KerasNet.py'
         root = '/data/new/javi/plasmo/nn_scalar'
     else:
         raise(Exception('hey you didnt specify a mode'))
