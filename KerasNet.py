@@ -122,7 +122,7 @@ def trainPrefilterModel(data_train, data_test, meta_train, meta_test, params):
     input_dim = data_train.shape[1]
     model = makePrefilterModel(input_dim, params['layers'], params['dropout'])
 
-    model.fit(data_train, meta_train, epochs=1500, batch_size=input_dim, shuffle=True, validation_split=0.25, verbose=0) #no tensorboard
+    model.fit(data_train, meta_train, epochs=2000, batch_size=input_dim, shuffle=True, validation_split=0.25, verbose=0) #no tensorboard
 
     res = model.evaluate(data_test, meta_test)
     

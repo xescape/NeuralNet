@@ -101,7 +101,7 @@ def main(script, root, mode):
     params = getParams()
     
     #we want to make a script for each param set
-    for p in params[:1]:
+    for p in params:
         makeScriptAndRun(script, root, p, mode)
 
 
@@ -115,6 +115,9 @@ if __name__ == '__main__':
     elif mode == 'scinet' or mode == 'scinet-test':
         script = '/home/j/jparkin/xescape/NeuralNet/KerasNet.py'
         root = '/scratch/j/jparkin/xescape/nn_scalar'
+    elif mode == 'calypto':
+        script = '/home/javi/NeuralNet'
+        root = '/data/new/javi/plasmo/nn_scalar'
     else:
         raise(Exception('hey you didnt specify a mode'))
     
