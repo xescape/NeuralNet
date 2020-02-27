@@ -5,11 +5,9 @@ import tensorflow as tf
 import numpy as np
 import datetime
 from tensorflow.keras import layers, optimizers, utils, regularizers, backend as K
-from tensorflow.keras.losses import MAE as mae
 from sklearn.preprocessing import OneHotEncoder as ohe, normalize
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LassoCV
-from sklearn.linear_model import LassoLarsCV, LassoLars
 from pathlib import Path
 from math import sqrt, pow
 
@@ -32,19 +30,21 @@ def trainFakeLasso(data, meta):
 
     return sorted_idx
 
-def prefiltering(data, meta):
+def prefiltering(data, meta, n):
     #make a linear model and get rid of the bottom stuff
-    # model = LassoLarsCV(n_jobs=-1)
-    model = LassoLars(alpha=0.001)
-    model.fit(data, meta.reshape((meta.shape[0],)))
+    model = LassoCV(cv = 3)
+    model.fit(data, meta.reshape((meta.shape[0])))
     coefs = np.abs(model.coef_)
+    # coefs = coefs.reshape((coefs.shape[1],))
+    cutoff = max(sorted(coefs)[n], 0.000000000001) #minimum coefficient
 
-    good_idx = np.where(coefs > 0)[0]
+    good_idx = np.where((coefs >= cutoff))[0]
 
     res = data[:,good_idx]
 
-    print('{0} features selected through prefiltering'.format(len(good_idx)))
-    return good_idx, res
+    print('{0} features selected'.format(len(good_idx)))
+    
+    return res, good_idx
 
 
 def makeModel(input_dim):
@@ -52,13 +52,16 @@ def makeModel(input_dim):
     this is the main function to make the model. start small
     '''
     model = tf.keras.Sequential()
-    model.add(layers.Dense(32, input_dim=input_dim, activation='relu', kernel_initializer='normal'))
-    model.add(layers.Dropout(0.3))
+    model.add(layers.Dense(input_dim, input_dim=input_dim, activation='relu', kernel_initializer='normal'))
+    model.add(layers.Dense(64, activation='relu', kernel_initializer='normal'))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(32, activation='relu', kernel_initializer='normal'))
+    model.add(layers.Dropout(0.5))
     model.add(layers.Dense(16, activation='relu', kernel_initializer='normal'))
-    model.add(layers.Dropout(0.3))
+    model.add(layers.Dropout(0.5))
     model.add(layers.Dense(1, kernel_initializer='normal'))
 
-    model.compile(optimizer='nadam',
+    model.compile(optimizer=optimizers.Nadam(),
                 loss = 'mse',
                 metrics=['mae'])
 
@@ -188,25 +191,19 @@ def makePrefilterModel(input_dim):
 
     return model
 
-def trainPrefilterModel(data_train, meta, log_path, model_path):
+def trainPrefilterModel(data_train, data_test, meta_train, meta_test, log_path, model_path):
     input_dim = data_train.shape[1]
     model = makePrefilterModel(input_dim)
-    # tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(log_path))
-    model.fit(data_train, meta, epochs=1000, batch_size=input_dim, shuffle=True, validation_split=0.2, verbose=0)
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir=str(log_path))
+    model.fit(data_train, meta_train, epochs=2000, batch_size=input_dim, shuffle=True, validation_split=0.25, verbose=0, callbacks=[tensorboard])
     print('prefilter model training loss')
-    # model.fit(data_train, meta_train, epochs=1, batch_size=20, shuffle=True, verbose=1)
+    model.fit(data_train, meta_train, epochs=1, batch_size=20, shuffle=True, verbose=1)
     print('prefilter model eval')
-    # model.evaluate(data_test, meta_test, batch_size=data_test.shape[1])
-    # print('data mean = {0} and std = {1}'.format(np.mean(meta_test), np.std(meta_test)))
-    # model.save(model_path)
-    res = model.predict(data_train)
-    error = np.sum(mae(meta, res), axis=None)
-    expected_error = np.sum(mae(meta, np.full_like(meta, np.average(meta, axis=None))), axis=None)
+    model.evaluate(data_test, meta_test, batch_size=data_test.shape[1])
+    print('data mean = {0} and std = {1}'.format(np.mean(meta_test), np.std(meta_test)))
+    model.save(model_path)
 
-    # logger = logging.getLogger('main')
-    print('Error of {0} in data with expected loss {1}. Ratio = {2}'.format(error, expected_error, error / expected_error))
-
-    return model.predict(data_train)
+    return model.predict(data_test)
 
 def importData(paintings_path, meta_path):
     '''
@@ -220,7 +217,7 @@ def importData(paintings_path, meta_path):
     #for the meta
     meta_df = pd.read_csv(meta_path, sep='\t', header=0, index_col=0)
     
-    df, meta_df = df.align(meta_df, axis=0, join='inner')
+    df, meta_df = df.align(meta_df, axis=0)
     
     return df, meta_df
 
@@ -232,7 +229,7 @@ def importSNPs(snps_path, meta_path):
     #for the meta
     meta_df = pd.read_csv(meta_path, sep='\t', header=0, index_col=0)
     
-    df, meta_df = df.align(meta_df, axis=0, join='inner')
+    df, meta_df = df.align(meta_df, axis=0)
     
     return df, meta_df
 
@@ -267,35 +264,35 @@ def run(df, meta_df, in_path, log_path, model_path, data_out_path):
 
     # data_train, data_test, meta_train, meta_test = train_test_split(data, meta, test_size=0.25)
 
-    # reverse_encoding = revOneHot(raw, data)
+    reverse_encoding = revOneHot(raw, data)
     #prefilter
-    # n_f = 256
-    filtered_data, data_idx = prefiltering(data, meta)
-    # original_idx = [reverse_encoding[x] for x in data_idx]
+    n_f = 256
+    filtered_data, data_idx = prefiltering(data, meta, n_f)
+    original_idx = [reverse_encoding[x] for x in data_idx]
 
-    # print('good indices')
-    # print(original_idx)
+    print('good indices')
+    print(original_idx)
 
-    # print('second lasso ranking')
-    # second_idx = trainFakeLasso(filtered_data, meta)
-    # try:
-    #     second_idx_fixed = [original_idx[x] for x in second_idx]
-    # except:
-    #     print(len(second_idx), second_idx)
-    #     print(len(original_idx), second_idx)
+    print('second lasso ranking')
+    second_idx = trainFakeLasso(filtered_data, meta)
+    try:
+        second_idx_fixed = [original_idx[x] for x in second_idx]
+    except:
+        print(len(second_idx), second_idx)
+        print(len(original_idx), second_idx)
 
 
 
-    # data_train, data_test, meta_train, meta_test = train_test_split(filtered_data, meta, test_size=0.25)
+    data_train, data_test, meta_train, meta_test = train_test_split(filtered_data, meta, test_size=0.25)
 
     # np.savez(data_out_path, idx = original_idx, data = filtered_data)
 
 
-    # lasso_results, some_idx = trainLasso(data_train, data_test, meta_train, meta_test)
-    # write_result(meta_test, lasso_results, in_path / 'lasso_result.tsv')
+    lasso_results, some_idx = trainLasso(data_train, data_test, meta_train, meta_test)
+    write_result(meta_test, lasso_results, in_path / 'lasso_result.tsv')
 
-    prefilter_results = trainPrefilterModel(filtered_data, meta, log_path, model_path)
-    # write_result(meta_test, prefilter_results, in_path / 'prefilter_result.tsv')
+    prefilter_results = trainPrefilterModel(data_train, data_test, meta_train, meta_test, log_path, model_path)
+    write_result(meta_test, prefilter_results, in_path / 'prefilter_result.tsv')
 
 
 
@@ -354,9 +351,9 @@ if __name__ == "__main__":
     # in_path = Path('D:\\Documents\\data\\plasmo\\newsim')
 
     #for realsies
-    in_path = Path('/d/data/plasmo/nat_out')
-    paintings_path = in_path / 'nat_nn.tsv'
-    meta_path = in_path / 'meta.tsv'
+    in_path = Path('D:\\Documents\\data\\plasmo\\training_data')
+    paintings_path = in_path / 'plasmo5k_nn.tsv'
+    meta_path = in_path / 'meta_v2.txt'
     log_path = in_path / 'nn_logs' / 'prefilter2k'
     model_path = in_path / 'nn_logs' / 'curr_model5.h5'
     data_out_path = in_path / 'nn_logs' / 'curr_data5.npz'
