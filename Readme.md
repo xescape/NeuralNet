@@ -1,1 +1,1 @@
-this is the read me file, I guess.
+This repository contains scripts for the study of anti-malarial resistance using neural networks.
