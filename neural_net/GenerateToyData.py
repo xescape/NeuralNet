@@ -163,11 +163,11 @@ if __name__ == '__main__':
     n_positions = 2300
     n_factors = 128
     p_regulatory = 0.5
-    out_path = Path('/d/data/plasmo/newsim')
+    out_path = Path('/mnt/d/data/popnet_paper/newsim')
 
-    painting_outfile = out_path / 'painting.tsv'
-    factor_outfile = out_path / 'factors.json'
-    phenotype_outfile = out_path / 'sim_meta.tsv'
+    painting_outfile = out_path / f'painting_{n_factors}.tsv'
+    factor_outfile = out_path / f'factors_{n_factors}.json'
+    phenotype_outfile = out_path / f'sim_meta_{n_factors}.tsv'
 
     #create factors
     base_factors, regulatory_factors = createFactors(n_factors, p_regulatory)
