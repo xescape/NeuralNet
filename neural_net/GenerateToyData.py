@@ -159,15 +159,15 @@ if __name__ == '__main__':
     args = sys.argv
     print('start')
     #arguments
-    n_samples = 150
+    n_samples = 1600
     n_positions = 2300
-    n_factors = 128
+    n_factors = 32
     p_regulatory = 0.5
     out_path = Path('/mnt/d/data/popnet_paper/newsim')
 
-    painting_outfile = out_path / f'painting_{n_factors}.tsv'
-    factor_outfile = out_path / f'factors_{n_factors}.json'
-    phenotype_outfile = out_path / f'sim_meta_{n_factors}.tsv'
+    painting_outfile = out_path / f'painting_{n_samples}.tsv'
+    factor_outfile = out_path / f'factors_{n_samples}.json'
+    phenotype_outfile = out_path / f'sim_meta_{n_samples}.tsv'
 
     #create factors
     base_factors, regulatory_factors = createFactors(n_factors, p_regulatory)

@@ -12,7 +12,7 @@ from sklearn.linear_model import LassoCV
 from sklearn.linear_model import LassoLarsCV, LassoLars
 from pathlib import Path
 from math import sqrt, pow
-from .resnet import resnet1
+from sklearn.model_selection import KFold
 
 def trainLasso(data_train, data_test, meta_train):
     model = LassoCV(cv = 5)
@@ -170,8 +170,13 @@ def trainPrefilterModel(data_train, data_test, meta_train):
 def eval_results(train_function, data, meta, reps=5):
     # calculate normalized mean absolute error across a number of reps
     errors = []
-    for _ in range(reps):
-        data_train, data_test, meta_train, meta_test = train_test_split(data, meta, test_size=0.25)
+    kf = KFold(n_splits=reps, shuffle=True)
+    for train_index, test_index in kf.split(data):
+
+        data_train, data_test = data[train_index], data[test_index]
+        meta_train, meta_test = meta[train_index], meta[test_index]
+
+        # data_train, data_test, meta_train, meta_test = train_test_split(data, meta, test_size=0.25)
         predicted = train_function(data_train, data_test, meta_train)
         if isinstance(predicted, tuple): # lasso returns two values
             predicted = predicted[0]
