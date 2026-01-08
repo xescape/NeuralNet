@@ -1,1 +1,1 @@
-This section is for the scripts for data prep
+Notebooks here were used to in the initial SNV calling and data preprocessing steps (prior to PopNet)
