@@ -77,6 +77,8 @@ def trainModel(data_train, data_test, meta_train, meta_test):
     model.evaluate(data_test, meta_test, batch_size=data_test.shape[1])
     print('data mean = {0} and std = {1}'.format(np.mean(meta_test), np.std(meta_test)))
 
+    return model.predict(data_test)
+
 def makeAEModel(input_dim):
     '''
     this is the main function to make the model. start small
@@ -143,6 +145,8 @@ def trainAEModel(data, data_train, data_test, meta_train, meta_test):
     print('aemodel eval')
     aemodel.evaluate(encoder.predict(data_test), meta_test, batch_size=data_test.size[0])
     print('data mean = {0} and std = {1}'.format(np.mean(meta_test), np.std(meta_test)))
+
+    return aemodel.predict(data_test)
 
 
 def makeConvAutoEncoder(input_dim):

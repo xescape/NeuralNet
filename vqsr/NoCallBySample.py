@@ -10,7 +10,7 @@ def count_nocall(row):
 if __name__ == "__main__":
     
     # dir = Path('/d/data/plasmo/training_data')
-    dir = Path('/d/data/plasmo/nat_out')
+    dir = Path('/d/data/plasmo/nat_out/v3')
     table_path = dir / 'nocall_filtered.tsv'
     out_path = dir / 'nocallbysample.tsv'
     table_out_path = dir / 'sample_filtered.tsv'
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     
     # to_drop = list(counts.index)[:10] #for the first dataset, we left out 10
 
-    to_drop = list(counts.index)[:44]
+    to_drop = list(counts.index)[:100]
     df_filtered = df.drop(columns=to_drop)
     df_filtered.to_csv(table_out_path, sep='\t', header=True, index=False)
 

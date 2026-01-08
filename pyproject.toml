@@ -1,0 +1,33 @@
+[project]
+name = "NeuralNet"
+version = "0.1.0"
+description = "GWAS using neural network and PopNet dimensionality reduction"
+authors = [
+    { name = "Javi Zhang", email = "javi.qc.zhang@gmail.com" }
+]
+readme = "README.md"
+requires-python = "<=3.8"
+dependencies = [
+    "poetry", # using poetry because this isn't actually a package
+    "tensorflow==1.15.5",
+    "scikit-learn",
+    "numpy",
+    "pandas",
+    "ipykernel",
+    "biopython",
+    "statsmodels",
+]
+[tool.poetry]
+name = "nn"
+version = "0.1.0"
+description = "GWAS using neural network and PopNet dimensionality reduction"
+authors = [
+    "Javi Zhang"
+]
+[tool.poetry.dependencies]
+python = "^3.6"
+tensorflow = "1.14"
+scikit-learn = "^0.19"
+pandas = "^0.23"
+[tool.setuptools]
+packages = ["neural_net"]
