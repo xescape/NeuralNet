@@ -1,4 +1,4 @@
-# Two-stage model for Genome-Wide Association Studies in Haploid Organisms
+# Two-stage model for Genome-Wide Association Studies in Human Pathogens
 
 This repository contains code for the two-stage model and supporting notebooks to reproduce the published findings.
 
