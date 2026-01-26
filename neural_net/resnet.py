@@ -1,3 +1,5 @@
+# Code for the resnet implementation is placed in this separate file to declutter.
+
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
 
@@ -109,40 +111,3 @@ def _resnet(in_shape,
 
 def resnet1(in_shape, n_classes, opt):
     return _resnet(in_shape, n_classes, opt, convx=[8, 16, 32], n_convx=[2,2,2,2])
-
-# def resnet18(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-#     return _resnet(in_shape, n_classes, opt)
-
-# def resnet34(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-#     return _resnet(in_shape,
-#                   n_classes,
-#                   opt,
-#                   n_convx=[3, 4, 6, 3])
-
-# def resnet50(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-#     return _resnet(in_shape,
-#                   n_classes,
-#                   opt,
-#                   [256, 512, 1024, 2048],
-#                   [3, 4, 6, 3],
-#                   convx_w_bottleneck)
-
-# def resnet101(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-#     return _resnet(in_shape,
-#                   n_classes,
-#                   opt,
-#                   [256, 512, 1024, 2048],
-#                   [3, 4, 23, 3],
-#                   convx_w_bottleneck)
-
-# def resnet152(in_shape=(224,224,3), n_classes=1000, opt='sgd'):
-#     return _resnet(in_shape,
-#                   n_classes,
-#                   opt,
-#                   [256, 512, 1024, 2048],
-#                   [3, 8, 36, 3],
-#                   convx_w_bottleneck)
-
-# if __name__ == '__main__':
-#     model = resnet50()
-#     print(model.summary())
