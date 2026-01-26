@@ -17,8 +17,8 @@ poetry install
 ```
 
 ## Repo structure
-The `neural_net` folder contains code  used to generate the data and analyses described in the manuscript. Models are contained in `neural_net/models.py`
-The `data_processing` folder contains scripts used to fetch and pre-process the data prior to the two-stage neural network model. They are meant to run on HPC environments.
-The `manuscript_notebooks` were used to generate the figures used in the manuscript.
+The `neural_net` folder contains code  used to generate the data and analyses described in the manuscript. Models are contained in `neural_net/models.py`. 
+The `data_processing` folder contains scripts used to fetch and pre-process the data prior to the two-stage neural network model. They are meant to run on HPC environments. 
+The `manuscript_notebooks` were used to generate the figures used in the manuscript. 
 
 
